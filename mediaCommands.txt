@@ -1,0 +1,49 @@
+M
+B
+S
+A,8
+T
+M,11
+S,-3
+B,8
+S,9
+A,-5
+A,10
+N,M,Hidden Figures,Theodore Melfi,9,Drama,126,2016,Jaraji P Henson,Octavia Spencer,Janelle Monae
+N,M,Psych 2: Lassie Come Home,Steve Franks,16,Comedy,115,2020,James Roday,Dule Hill,Timothy Omundson
+N,S,Africa,Toto,7,rock,295,1982,1
+N,S,Respect,Aretha Franklin,ERROR,R&B,281,1967,1
+N,S,Strawberry Fields Forever,Beatles,9,Pop,ERROR,1967,0
+N,S,Strawberry Fields Forever,Beatles,9,Pop,185,1967,ERROR
+N,S,Strawberry Fields Forever,Beatles,9,Pop,185,1967,1
+N,S,Bohemian Rhapsody,Queen,8,rock,355,1975,1
+N,B,Close Encounters,Steven Spielberg,5,Science Fiction,256,1997,ERROR
+N,B,Close Encounters,Steven Spielberg,5,Science Fiction,256,1997,5
+N,B,The Brothers Hawthorne,Jennifer Lynn Barnes,9,Mystery,400,ERROR,0
+N,B,Lessons in Chemistry,Bonnie Garmus,5,Humor,320,2026,0
+N,B,Lessons in Chemistry,Bonnie Garmus,5,Humor,320,2022,5
+N,S,Yellow Submarine,Beatles,8,Pop,310,1966,1
+S,9
+A,Pop
+B,7
+M,8
+B,15
+B,Suspense
+K,Stephen King
+M,Action
+S,R&B
+S,Rock
+S,none
+L,Hidden Figures
+L,Lost
+L,Dune
+F,Octavia Spencer
+F,Harrison Ford
+F,Victor Lee
+K,Harrison Ford
+K,Steven Spielberg
+K,Bee Gees
+K,Beatles
+A
+T
+Q

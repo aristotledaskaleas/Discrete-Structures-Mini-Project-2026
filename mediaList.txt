@@ -1,0 +1,76 @@
+M,To Kill a Mockingbird,Horton Foote,5,Drama,129,1962,Gregory Peck,Mary Badham
+M,Ferris Bueller's Day Off,John Hughes,7,Comedy,103,1986,Matthew Broderick,Alan Ruck,Jennifer Grey
+M,Rocky,Sylvester Stallone,7,Action,119,1976,Sylvester Stallone,Carl Weathers
+M,Jaws,Steven Spielberg,5,Action,129,1975,Roy Scheider,Richard Dreyfuss
+M,Daughters of the Dust,Julie Dash,8,Drama,112,1991,Alva Rogers,Cora Lee Day
+M,Raiders of the Lost Ark,George Lucas,6,Action,115,1981,Harrison Ford,Karen Allen
+M,Star Wars IV,George Lucas,6,Action,121,1977,Mark Hamill,Carrie Fisher,Harrison Ford,Alec Guiness
+M,Hidden Figures,9,Drama,126,2016,Jaraji P Henson,Octavia Spencer,Janelle Monae
+M,Mr. Holland's Opus,Stephen Herek,8,Drama/Musical,143,1995,Richard Dreyfuss,Jay Thomas,Glenne Headly
+B,To Kill a Mockingbird,Harper Lee,8,Southern Gothic Fiction,281,1960,4
+B,Hamlet,William Shakespeare,4,Tragedy,214,1600,5
+B,Fahrenheit 451,Ray Bradbury,Sci-Fi,256,1953,8
+B,Animal Farm, George Orwell,8,Allegory,112,1945,6
+B,The Great Gatsby,F.Scott Fitzgerald,7,Modernist novel,205,1925,10
+B,The Catcher in the Rye,JD Salinger,3,Coming of Age,234,1951,9
+B,Lord of the Flies,William Golding,6,Adventure,224,1954,3
+B,Of Mice and Men,John Steinbeck,5,Tragedy,107,1937,15
+M,Blade Runner 2049,Denis Villeneuve,9,Sci-Fi,163,2017,Ryan Gosling,Harrison Ford
+M,Jurassic Park,Steven Spielberg,8,Sci-Fi,127,1993,Sam Neill,Jeff Goldblum
+M,Dune,Denise Villeneuve,7,Sci-Fi,155,2021,Timothee Chalamet,Zendaya
+M,So I Married an Axe Murderer,Thomas Schlamme,15,Comedy,93,1993,Mike Meyers,Nancy Travis
+M,Fight Club,David Fincher,10,Drama,7219,1999,Brad Pitt,Edward Norton
+M,Percy Jackson and the Lightning Thief,Chris Columbus,2,Fantasy,119,2010,Logan Lerman,Alexandra Daddario
+M,The Grand Budapest Hotel,Wes Anderson,9,Adventure,100,2014,Ralph Fiennes,Saoirse Ronan
+M,Superman,Richard Donner,8,Sci-Fi,143,1978,Christopher Reeve,Gene Hackman,Margo Kidder
+M,Spirited Away,Hayao Miyazaki,8,Fantasy,125,2002,Rumi Hiiragi,Miyu Irino
+M,Gone Girl,David Fincher,10,Thriller/Mystery,149,2014,Ben Affleck,Rosamund Pike
+M,Moonlight,Barry Jenkins,10,Drama,119,2016,Mahershala Ali,Naomi Harris
+M,The Wolf of Wallstreet,Martin Scorsese,10,Comedy,180,2013,Leonardo DiCaprio,Jonah Hill
+M,Maximum Overdrive,Stephen King,5,Horror,167,1986,Emilio Estivez,Pat Hingle,Laura Harrington
+B,Crime and Punishment,Fyodor Dostoevsky,7,Crime Fiction,576,1866,15
+B,House of Leaves,Mark Z. Danielewski,9,Horror,709,2000,0
+B,I Can Teach You to Be Rich,Ramit Sethi,8,Self Help,272,2009,16
+B,Neuromancer,William Gibson,10,Cyberpunk,271,1984,16
+B,Percy Jackson and the Last Olympian,Rick Riordan,9,Fantasy,381,2009,15
+B,Six of Crows,Leigh Bardugo,10,Fantasy,462,2015,20
+B,The Alchemist,Paulo Coelho,9,Adventure,163,1993,10
+B,The Goldfinch,Donna Tartt,10,Suspense,784,2013,1
+B,The Hunger Games,Suzanne Collins,7,Action,284,2008,15
+B,The Music of Erich Zann,H.P. Lovecraft,10,Horror,20,1921,2
+B,Watchmen,Alan Moore,8,Sci-Fi,416,1987,ERROR
+B,Way of kings,Brandon Sanderson,10,Fantasy,1200,2010,5
+S,All Too Well,Taylor Swift,10,Pop,327,2012,1
+S,Baba Yetu,Christopher Tin,10,Choir,203,2025,0
+S,Ball if I want to,Da Baby,10,Rap,192,2021,1
+S,Blinding Lights,the Weeknd,10,9,INVALID,2020,1
+S,Call out my name,The Weeknd,8,R&B,228,2021,0
+S,Yesterday,Beatles,8,Rock,123,1965,1
+S,Compass,The Neighbourhood,8,Indie,167,2018,1
+S,Easy on me,Adele,6,pop,332,2021,0
+S,Figures,Jessie Reyez,8,R&B,240,2018,0
+S,First Love / Late Spring,Mitski,10,Indie,278,2014,1
+S,Frozen,Sabrina Lauduio,5,R&B,242,2017,1
+S,Garden Grove,Sublime,10,Reggae,262,1998,0
+S,Hey Jude,Beatles,10,Rock,431,1968,1
+S,Har dil ki ava,Atif aslam,10,Slow music,188,2014,1
+S,Holy Ghost,Borns,8,Choir,256,2015,1
+S,kal ho na ho,singh,9,Punajbi,241,2009,0
+S,Let It Be,Beatles,9,Rock,241,1970,1
+S,Monks,Frank Ocean,10,Pop,199,2012,1
+S,More Than a Woman,Bee Gees,9,Pop,195,1977,0
+S,nasha ha,Ali zafar,8,normal one,258,2010,0
+S,Out Tha Mud,Kevin Gates,10,Rap,187,2015,0
+S,Phali dafa,Atif aslam,9,urdu,284,2017,0
+S,Sea Dragon,Covet,9,Math Rock,333,2018,1
+S,Slacker,Tech N9ne,10,Rap,257,2002,1
+S,Something,Snarky Puppy ft.Lahlah Hathaway,10,R&B - Jazz,464,2015,1
+S,Stayin' Alive,Bee Gees,10,Pop,419,1979,ERROR
+S,Sweet Caroline,Neil Diamond,10,Rock,203,1969,1
+S,Sweet Life,Frank Ocean,8,Pop,262,2012,0
+S,Thank u - next,Ariana Grande,8,Pop,207,2019,1
+S,The Mountain Top,Lena Raine,10,Video Game Soundtrack,259,2021,0
+S,Tik Tok,Kesha,9,Pop,199,2009,1
+S,Tranquility Base Hotel & Casino,Arctic Monkeys,10,Rock,211,2018,1
+S,Wake Up,Eden,9,Alternative,279,2015,0
+Q
