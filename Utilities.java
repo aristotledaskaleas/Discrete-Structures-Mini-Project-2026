@@ -86,6 +86,16 @@ public class Utilities {
 
         System.out.println("Populated " + other + " user-product relationships into program.");
     }
+
+    public static void populateUserProductRecommendations(ArrayList<User> users, ArrayList<ProductRelation> relations) {
+        for (User u : users) {
+            if (u.getUsedProducts().isEmpty()) {
+                // add 3 most popular recommendations for those with no data
+            } else {
+                // get 3 most similar recommendations based on used products
+            }
+        }
+    }
 //#endregion
 
 //#region WRAPPER METHODS FOR Database.java
