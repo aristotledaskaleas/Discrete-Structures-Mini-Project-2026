@@ -1,37 +1,38 @@
 import java.time.ZonedDateTime;
-import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-/*
-    Research Mini Project - Discrete Structures 2026
-    Bipartite graphing linking users to products and recommended products.
-    All user information and data is persistent in SQL database.
+//*/
+// "User Recommendation Database With Bipartite Graphing"
+//   Research Mini Project - Discrete Structures 2026
+//
+// Bipartite graphing linking users to products and recommended products.
+//   All user information and data is persistent in SQL database.
+//
+// Author(s): Aristotle Daskaleas
+// Date: 2026 (October-November)
+//*/
 
-    Author(s): Aristotle Daskaleas
-*/
+//*
+// GOALS: [KEY:{-:planned,+:completed,*:in_progress}]
+//  - Implement a simple algorithm for recommending products to users 
+//  - Seed the database with real world data
+//  - Implement a graphing method (graphical?)
+//  * Implement a menu allowing for the querying and manipulation of the database 
+//  + Partition code in a manageable, understandable manner
+//  + Implement database querying and manipulation methods
+//  + Complete Utility methods that will be used later
+// */
 
 public class Main {
-    final static String[] AUTHORS = {"Aristotle Daskaleas"};
-    final static int YEAR = 2026;
-    final static String PROG_NAME = "User Recommendation Database with Graphing";
-
-    final static String[] CATEGORIES = { // Only allow these categories to be searched for
-        "Food",
-        "Video",
-        "Audio",
-        "Peripherals",
-        "Office Supplies"
-    };
-
      public static void main(String args[]) {
         //Utilities.testDatabaseMethods(); // Debugging
 
 //#region SETUP
         // Print the beginning information
-        Utilities.printStartInit(AUTHORS, PROG_NAME, YEAR);
+        Utilities.printStartInit(Constants.AUTHORS, Constants.PROG_NAME, Constants.YEAR);
 
         // Create variables to store information during runtime
         ArrayList<User> users = new ArrayList<User>();
@@ -56,25 +57,6 @@ public class Main {
 //#endregion
 
 //#region MAIN
-        // Define a thoughtful string for the menu and the allowed characters (must be capital)
-        final String menu = """
-        OPTIONS:
-          USERS:                      USER-PRODUCT RELATIONSHIPS:
-            A.] Register user           D.] Register relationship
-            B.] Remove user             E.] Remove relationship
-            C.] View users              F.] View relationships
-
-          PRODUCTS:                   PRODUCT-PRODUCT RELATIONSHIPS:
-            G.] Register product        J.] Register relationship
-            H.] Remove product          K.] Remove relationship
-            I.] View products           L.] View relationships
-
-          GRAPH:                      PROGRAM:
-            M.] Generate graph          Q.] Quit
-        """;
-
-        final String allowedCharacters = "ABCDEFGHIJKLMQ";
-
         try {
             // Open a scanner for user input
             Scanner input = new Scanner(System.in);
@@ -89,7 +71,7 @@ public class Main {
             while (true) {
                 if (SIGQUIT) break;
 
-                final char choice = Utilities.serveMenu(menu, allowedCharacters, input);
+                final char choice = Utilities.serveMenu(Constants.menu, Constants.allowedCharacters, input);
                 switch (choice) {
                     // Execute choice based on user input
                     case 'A': { // Register new user
@@ -97,7 +79,10 @@ public class Main {
 
                         if (username == null) break;
 
-                        Utilities.addUser(username);
+                        if (!Utilities.addUser(username)) {
+                            System.out.println("Failed to register user!");
+                            break;
+                        }
 
                         users.clear();
                         Utilities.populateUserList(users); // update user list
@@ -108,7 +93,10 @@ public class Main {
                         
                         if (username == null) break;
 
-                        Utilities.removeUser(username);
+                        if (!Utilities.removeUser(username)) {
+                            System.out.println("Failed to remove user!");
+                            break;
+                        }
 
                         // clear users and rebuild
                         users.clear();
@@ -143,11 +131,10 @@ public class Main {
                                             }
 
                                             user_id = Integer.parseInt(tmp.trim());
-                                            if (user_id < Utilities.START_USER_ID) { // too small
-                                                System.out.println("User ID must be greater than " + Utilities.START_USER_ID + ".");
+                                            if (user_id < Constants.START_USER_ID) { // too small
+                                                System.out.println("User ID must be greater than " + Constants.START_USER_ID + ".");
                                                 continue;
-                                            } else if (user_id > Database.getLastUserID()) { // too large
-                                                System.out.println("User ID must be less than " + Database.getLastUserID() + ".");
+                                            } else if (Utilities.validateUserID(user_id)) {
                                                 continue;
                                             }
 
@@ -156,10 +143,6 @@ public class Main {
                                         } catch (NumberFormatException e) {
                                             System.out.println("User ID MUST be an integer!");
                                             continue;
-                                        } catch (SQLException e) {
-                                            System.out.println("Error accessing database: " + e.getMessage());
-                                            quit = true; confirm = true;
-                                            break;
                                         }
                                     }
                                 } else if (ch == 'q') { // cancel

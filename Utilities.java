@@ -6,18 +6,35 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 
+//*/
+// Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
+// This class stores common functions that are used around the program.
+//*/
+
+//*/
+// This class will store just about every function needed to be accessed in Main.java
+//   without requiring the use of try{...}catch(...){...} statements for the SQLException.
+//
+// There are many wrapper functions (for using database functions) including rich(er)
+//   error handling, input checking, and results- all catching the dreaded SQLException
+//   so it doesn't have to be done later.
+//
+// There is a menu, and functions that can be used to populate cache (i.e., local ArrayList<>'s)
+//   so the database doesn't have to be called every time (already in memory).
+//
+//(*) There [WILL BE SOON] a function that populates recommended products based on product-product relationship
+//      weight and category, trying to find the best product to recommend.
+//
+// There is a function that basically tests (most of) the functions in Database.java (and it worked, but not well-
+//   like not checking every condition) so, probably don't use it [I marked it depreciated]. 
+//
+// Lastly, there is a function that prints the program name and author(s), along with the year,
+//   plus a function that literally just prints "Program has been initialized!" (:3)
+//*/
+
 public class Utilities {
-    final static int START_USER_ID = 1;
-    final static int START_PROD_ID = 101;
-
-    final static int MAX_RECOMMENDATIONS = 3;
-
-    final static int MIN_USERNAME_LENGTH = 3;
-    final static int MAX_USERNAME_LENGTH = 20;
-
-    final static int MIN_PRODUCT_LENGTH = 3;
-    final static int MAX_PRODUCT_LENGTH = 35;
-
+    private Utilities(){} // only static methods are used
+    
 //#region UTILITY
     // PRE: Take a string (menu), and a string of allowed characters
     // POST: Serve a menu to a user and return a valid character
@@ -64,7 +81,7 @@ public class Utilities {
     public static void populateProductList(ArrayList<Product> products) {
         int other = 0;
         try {
-            int counter = START_PROD_ID;
+            int counter = Constants.START_PROD_ID;
             while (counter <= Database.getLastProdID()) { // from start to finish, add all products
                 // Name, Manufacturer, Category
                 String[] prod_data = Database.getProductFull(counter);
@@ -84,7 +101,7 @@ public class Utilities {
     public static void populateUserList(ArrayList<User> users) {
         int other = 0;
         try {
-            int counter = START_USER_ID;
+            int counter = Constants.START_USER_ID;
             while (counter <= Database.getLastUserID()) { // from start to finish, add all users
                 String name = Database.getUser(counter);
 
@@ -103,8 +120,8 @@ public class Utilities {
     public static void populateProductRelationList(ArrayList<ProductRelation> p_relations) {
         int other = 0;
         try {
-            for (int i = START_PROD_ID; i < Database.getLastProdID(); i++) {
-                for (int j = START_PROD_ID; j < Database.getLastProdID(); j++) {
+            for (int i = Constants.START_PROD_ID; i < Database.getLastProdID(); i++) {
+                for (int j = Constants.START_PROD_ID; j < Database.getLastProdID(); j++) {
                     final double weight = Database.getRelationWeight(i, j);
                     if (weight < 0.0) continue;
                     p_relations.add(new ProductRelation(i, j, weight));
@@ -121,7 +138,7 @@ public class Utilities {
         try {
             for (User u : users) {
                 final int uid = u.getUserID();
-                for (int i = START_PROD_ID; i < Database.getLastProdID(); i++) {
+                for (int i = Constants.START_PROD_ID; i < Database.getLastProdID(); i++) {
                     if (Database.isUserProductRelated(uid, i)) {
                         Product p = null;
                         for (Product prod : products) {
@@ -168,7 +185,7 @@ public class Utilities {
             user_recommendations.put(u.getName(), new ArrayList<String>(prod_names));
 
             ArrayList<String> used_names = new ArrayList<String>();
-            if (u.getUsedProducts().size() <= MAX_RECOMMENDATIONS) { // less than (or equal to) 3 used products
+            if (u.getUsedProducts().size() <= Constants.MAX_RECOMMENDATIONS) { // less than (or equal to) 3 used products
                 for (Product p : u.getUsedProducts()) {
                     used_names.add(p.name());
                 }
@@ -176,7 +193,7 @@ public class Utilities {
                 ArrayList<Product> tmp = u.getUsedProducts();
                 Random rand = new Random();
 
-                for (int i = 0; i < MAX_RECOMMENDATIONS; ++i) {
+                for (int i = 0; i < Constants.MAX_RECOMMENDATIONS; ++i) {
                     used_names.add((tmp.get(rand.nextInt(tmp.size()))).name());
                 }
             }
@@ -254,8 +271,8 @@ public class Utilities {
     // POST: return true if user_id is valid (and has an associated user), false otherwise
     public static boolean validateUserID(int user_id) {
         try {
-            if (user_id < START_USER_ID || user_id > Database.getLastUserID()) {
-                System.out.println("User ID is out of range. (" + START_USER_ID + "-" + Database.getLastUserID() + ").");
+            if (user_id < Constants.START_USER_ID || user_id > Database.getLastUserID()) {
+                System.out.println("User ID is out of range. (" + Constants.START_USER_ID + "-" + Database.getLastUserID() + ").");
                 return false;
             }
             if (Database.getUser(user_id) == null) {
@@ -274,8 +291,8 @@ public class Utilities {
     // POST: return true of product_id is valid (and has an associated product), false otherwise
     public static boolean validateProductID(int product_id) {
         try {
-            if (product_id < START_PROD_ID || product_id > Database.getLastProdID()) {
-                System.out.println("Product ID is out of range. (" + START_USER_ID + "-" + Database.getLastProdID() + ").");
+            if (product_id < Constants.START_PROD_ID || product_id > Database.getLastProdID()) {
+                System.out.println("Product ID is out of range. (" + Constants.START_USER_ID + "-" + Database.getLastProdID() + ").");
                 return false;
             }
             if (Database.getProduct(product_id) == null) {
@@ -303,8 +320,8 @@ public class Utilities {
                 return false;
             }
 
-            if (name.length() < MIN_USERNAME_LENGTH || name.length() > MAX_USERNAME_LENGTH) {
-                System.out.println("Username MUST be between " + MIN_USERNAME_LENGTH + " and " + MAX_USERNAME_LENGTH + " characters!");
+            if (name.length() < Constants.MIN_USERNAME_LENGTH || name.length() > Constants.MAX_USERNAME_LENGTH) {
+                System.out.println("Username MUST be between " + Constants.MIN_USERNAME_LENGTH + " and " + Constants.MAX_USERNAME_LENGTH + " characters!");
                 return false;
             }
 
@@ -370,8 +387,13 @@ public class Utilities {
                 return false;
             }
 
-            if (product.length() < MIN_PRODUCT_LENGTH || product.length() > MAX_PRODUCT_LENGTH) {
-                System.out.println("Product length must be between " + MIN_PRODUCT_LENGTH + " and " + MAX_PRODUCT_LENGTH + " characters!");
+            if (product.length() < Constants.MIN_PRODUCT_LENGTH || product.length() > Constants.MAX_PRODUCT_LENGTH) {
+                System.out.println("Product length must be between " + Constants.MIN_PRODUCT_LENGTH + " and " + Constants.MAX_PRODUCT_LENGTH + " characters!");
+                return false;
+            }
+
+            if (Database.doesProductExist(product)) { // do not allow duplicate products (by name)
+                System.out.println("Product '" + product + "' already exists!");
                 return false;
             }
 
@@ -383,14 +405,14 @@ public class Utilities {
                 
                 // Ensure a proper category was supplied
                 boolean found = false;
-                for (String c : Main.CATEGORIES) {
+                for (String c : Constants.CATEGORIES) {
                     if (c.equals(category)) {
                         found = true; break;
                     }
                 }
                 if (!found) { // hint to users the valid categories
                     System.out.println("Try to use a proper category:");
-                    for (String c : Main.CATEGORIES) {
+                    for (String c : Constants.CATEGORIES) {
                         System.out.println("  "+c);
                     } System.out.println();
                 }
@@ -408,6 +430,11 @@ public class Utilities {
     // return false if failed to remove product from database
     public static boolean removeProduct(String product) {
         try {
+            if (!Database.doesProductExist(product)) {
+                System.out.println("The supplied product name does NOT exist!");
+                return false;
+            }
+
             int product_id = Database.getProductID(product);
 
             if (Database.removeProduct(product)) {
@@ -618,6 +645,7 @@ public class Utilities {
 //#endregion
 //#region DEBUG
     // TEST ALL METHODS DEFINED IN Database.java
+    @Deprecated
     public static void testDatabaseMethods() {
         // test initialization
         try {

@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,15 +8,31 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
-public final class Database {
-    private static final Path DATABASE_PATH = Path.of("database.db");
-    private static final String DATABASE_LOC = "jdbc:sqlite:" + DATABASE_PATH.toAbsolutePath();
+//*/
+// Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing"
+// This class facilitates utilizing a SQLite database.
+//*/
 
-    private Database(){} // make uninstantiable
+//*/
+// This class utilizes the JDBC SQLite driver to connect to a pre-existing database (database.db)[hardcoded]. 
+// Once connected, there are many convenient methods implemented to query and manipulate the 
+//   database with ease.
+//
+// If database.db does not exist, you may call initialize() which will read schema.sql to create a database
+//   with the required tables to work with the program. seedDemoData() may be used to populate sample data.
+//
+// All methods are static and therefore this class does not need to be instantiated.
+//
+// Review file for methods, the names are self-explanatory, but I really don't want to extensively document them
+//   here, thank you for understanding!! :)
+//*/
+
+public final class Database {
+    private Database(){} // make uninstantiable [only static methods are used]
 
     // Return a connection to the sql database found at 'DATABASE_PATH'
     public static Connection connect() throws SQLException {
-        Connection connection = DriverManager.getConnection(DATABASE_LOC);
+        Connection connection = DriverManager.getConnection(Constants.DATABASE_LOC);
 
         try (Statement statement = connection.createStatement()) {
             // this prevents existing data checks from being skipped
@@ -132,7 +147,7 @@ public final class Database {
         try (Connection connection = connect()) {
             PreparedStatement statement = connection.prepareStatement("""
                 SELECT * FROM users WHERE (username) LIKE (?)
-            """); // 'LIKE' makes query case-insensitive
+            """); // 'LIKE' makes query case-insensitive [sql]
 
             statement.setString(1, username);
 
@@ -241,7 +256,7 @@ public final class Database {
         } if (manufacturer == null) manufacturer = "NULL";
 
         boolean cont = false;
-        for (String c : Main.CATEGORIES) { // only allow valid categories to be added
+        for (String c : Constants.CATEGORIES) { // only allow valid categories to be added
             if (c.equals(category)) {
                 cont = true; break;
             }
