@@ -1,12 +1,59 @@
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Random;
 
 public class Utilities {
     final static int START_USER_ID = 1;
     final static int START_PROD_ID = 101;
 
+    final static int MAX_RECOMMENDATIONS = 3;
+
 //#region UTILITY
+    // PRE: Take a string (menu), and a string of allowed characters
+    // POST: Serve a menu to a user and return a valid character
+    // ALL CHARACTERS IN ALLOWED CHARACTERS MUST BE CAPITALIZED!
+    public static char serveMenu(final String menuString, String allowedCharacters, Scanner input) {
+        final int WRAP_TIME = 3;
+        int tracker = WRAP_TIME; // keep track of how many times menu has been served with incorrect answers
+
+        char choice;
+        char[] allowed = allowedCharacters.toCharArray();
+
+        if (allowedCharacters.isEmpty()) { 
+            System.out.println("internal_error:serveMenu - requires non-null character comparison set"); 
+            return ' '; 
+        }
+
+        while (true) {
+            ++tracker;
+            if (tracker >= WRAP_TIME) {
+                System.out.println("\n"+menuString);
+                tracker = 0;
+            }
+
+            System.out.print("Please make a selection (in '"+allowedCharacters+"'): ");
+
+            try {
+                choice = input.nextLine().trim().toUpperCase().charAt(0);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Input mustn't be empty!");
+                continue;
+            }
+
+            for (char c : allowed) {
+                if (c == choice) {
+                    return c;
+                }
+            }
+
+            System.out.println("Input is invalid!");
+        }
+    }
+
     // Utility functions for populating database information into class lists
     public static void populateProductList(ArrayList<Product> products) {
         int other = 0;
@@ -96,15 +143,111 @@ public class Utilities {
             }
         }
     }
+
+    // PRE: take list of users
+    // POST: make user->recommendation and user->product maps and use
+    // information to generate a visual graph
+    public static void generateGraph(ArrayList<User> users) {
+        Map<String, ArrayList<String>> user_recommendations = new HashMap<>();
+        Map<String, ArrayList<String>> user_products = new HashMap<>();
+
+        // iterate through all users and their recommendations
+        for (User u : users) {
+            ArrayList<String> prod_names = new ArrayList<String>();
+            for (Product p : u.getRecommendedProducts()) { // add names of products to list
+                prod_names.add(p.name());
+            }
+
+            // add entry in total recommendations
+            user_recommendations.put(u.getName(), new ArrayList<String>(prod_names));
+
+            ArrayList<String> used_names = new ArrayList<String>();
+            if (u.getUsedProducts().size() <= MAX_RECOMMENDATIONS) { // less than (or equal to) 3 used products
+                for (Product p : u.getUsedProducts()) {
+                    used_names.add(p.name());
+                }
+            } else { // only add 3 random products
+                ArrayList<Product> tmp = u.getUsedProducts();
+                Random rand = new Random();
+
+                for (int i = 0; i < MAX_RECOMMENDATIONS; ++i) {
+                    used_names.add((tmp.get(rand.nextInt(tmp.size()))).name());
+                }
+            }
+
+            user_products.put(u.getName(), new ArrayList<String>(used_names));
+        }
+
+        //
+        // CODE TO GENERATE GRAPH, RESPECT SIZE OF USERS AND PRODUCTS
+        // PERHAPS USE DATA GENERATED WITH RECOMMENDED AND USED PRODUCTS
+        //
+        
+
+    }
+
+    // PRE: take a prompt and input
+    // POST: asks user to enter, and confirms input with y/n/q
+    // Returns user input once confirmed or null if cancelled.
+    public static String getUserInput(String prompt, Scanner input) {
+        boolean quit = false;
+        String output = null;
+
+        while (!quit) {
+            System.out.print("\n" + prompt);
+            output = input.nextLine();
+            System.out.print("Does this look correct '" + output + "' (y/N) [q:cancel]? ");
+            try {
+                char ch = input.nextLine().trim().toLowerCase().charAt(0);
+                if (ch == 'y') { // confirmed
+                    return output;
+                } else if (ch == 'n') { 
+                    System.out.println("try again");
+                } else if (ch == 'q') {
+                    System.out.println("Cancelled.\n");
+                    quit = true;
+                } else { // neither y, n, nor q
+                    System.out.println("trigger re-prompt.");
+                }
+            } catch (IndexOutOfBoundsException e) { // [default:'n'] if input is empty
+                System.out.println("try again");
+            }
+        }
+
+        return null;  
+    }
+
+    public static boolean validateUsernameString(String username) {
+        // Allow only alphanumeric characters and underscores.
+        char[] in = username.toCharArray();
+        for (char ch : in) {
+            if (!(((ch >= 'A' && ch <= 'Z') || ch == '_') || ((ch >= 'a' && ch <= 'z') || ch == '_' ))) {
+                if (ch >= '0' && ch <= '9') continue;
+
+                return false;
+            }
+        }
+
+        return true;
+    }
 //#endregion
 
 //#region WRAPPER METHODS FOR Database.java
     public static void addUser(String name) {
         try {
-            if (Database.addUser(name)) {
-                System.out.println("Registered '" + name + "' as a user.");
+            if (!validateUsernameString(name)) {
+                System.out.println("Username contains illegal characters (must be alphanumerical with underscores)!");
+                return;
+            }
+
+            if (!Database.doesUserExist(name)) {
+                if (Database.addUser(name)) {
+                    System.out.println("Registered '" + name + "' as a user.");
+                } else {
+                    System.out.println("Failed to register '" + name + "' as a user.");
+                }
             } else {
-                System.out.println("Failed to register '" + name + "' as a user.");
+                System.out.println("'" + name + "' is already registered!");
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
@@ -115,6 +258,12 @@ public class Utilities {
         try {
             if (Database.removeUser(name)) {
                 System.out.println("Deleted user '" + name + "'.");
+
+                // Remove all relations of user
+                int user_id = Database.getUserID(name);
+                if (user_id < 0) return;
+
+                Database.removeAllUserProductRelationsByUserID(user_id);
             } else {
                 System.out.println("Failed to delete user '" + name + "'.");
             }
@@ -153,6 +302,13 @@ public class Utilities {
         try {
             if (Database.removeProduct(product)) {
                 System.out.println("Deleted product '" + product + "'.");
+
+                // Delete all product relations
+                int product_id = Database.getProductID(product);
+                if (product_id < 0) return;
+
+                Database.removeAllUserProductRelationsByProductID(product_id);
+                Database.removeAllProductRelations(product_id);
             } else {
                 System.out.println("Failed to delete product '" + product + "'.");
             }
@@ -518,6 +674,35 @@ public class Utilities {
             System.out.println("A SQL exception occurred: " + e.getMessage());
             return;
         }
+    }
+//#endregion
+//#region INITIALIZATION
+    public static void printStartInit(final String[] author_list, final String program_name, final int year) {
+  
+        int num_authors = author_list.length;
+        if (num_authors > 1) { // account for trailing comma [or an empty trailing value]
+            if (author_list[num_authors-1].isEmpty()) {
+                --num_authors;
+            }
+        }
+
+        if (num_authors == 1) { // one author
+            System.out.print(program_name + " - " + year + ": " + author_list[0].trim());
+        } else { // multiple authors
+            System.out.print(program_name + " - " + year + ": ");
+            for (int i = 0; i < num_authors; i++) {
+                System.out.print(author_list[i].trim());
+                if (i < (num_authors-1)) {
+                    System.out.print(", ");
+                }
+            }
+        }
+
+        System.out.println("\n\nInitializing..");
+    }
+
+    public static void printEndInit() {
+        System.out.println("Program has been initialized!\n");
     }
 //#endregion
 }

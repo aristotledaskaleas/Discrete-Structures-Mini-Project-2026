@@ -124,11 +124,30 @@ public final class Database {
         }
     }
 
+    // PRE: take a username string
+    // POST: return true if user exists, false otherwise
+    public static boolean doesUserExist(String username) throws SQLException {
+        if (getUserID(username) != -1) return true; // has a userID -> automatically exists
+
+        try (Connection connection = connect()) {
+            PreparedStatement statement = connection.prepareStatement("""
+                SELECT * FROM users WHERE (username) LIKE (?)
+            """); // 'LIKE' makes query case-insensitive
+
+            statement.setString(1, username);
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (!results.next()) return false; // no results from query -> user not found
+                return true; // query returned a result
+            }
+        }
+    }
+
     // PRE: Take a valid username string
     // POST: add a user to the sql database based on username
     // false->failed, true->success
     public static boolean addUser(String username) throws SQLException {
-        if (getUserID(username) != -1) return false; // user already exists
+        if (doesUserExist(username)) return false; // user already exists
 
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
@@ -331,6 +350,56 @@ public final class Database {
         }
     }
 
+    // PRE: take a valid userID
+    // POST: remove any relational assertion associated with the user
+    // from the database. false->failed, true->success
+    public static boolean removeAllUserProductRelationsByUserID(int user_id) throws SQLException {
+        if (user_id < 0) return false;
+
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+
+            PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM user_products WHERE (user_id) = (?)
+            """);
+
+            statement.setInt(1, user_id);
+
+            if (statement.executeUpdate() == 0) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        }
+    }
+
+    // PRE: take a valid productID
+    // POST: remove any relational assertion associated with the product
+    // from the database. false->failed, true->success
+    public static boolean removeAllUserProductRelationsByProductID(int product_id) throws SQLException {
+        if (product_id < 0) return false;
+
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+
+            PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM user_products WHERE (product_id) = (?)
+            """);
+
+            statement.setInt(1, product_id);
+
+            if (statement.executeUpdate() == 0) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        }
+    }
+
     // PRE: take 2 valid product IDs and a weight
     // POST: adds a new product relational assertion with `weight` similarity,
     // where 0.0 ≤ weight ≤ 1.0. false->failed, true->success
@@ -402,6 +471,32 @@ public final class Database {
             connection.commit();
             return true;
         } 
+    }
+
+    // PRE: take a valid productID
+    // POST: remove any product relational assertion associated with the product
+    // from the database. false->failed, true->success
+    public static boolean removeAllProductRelations(int product_id) throws SQLException {
+        if (product_id < 0) return false;
+
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+
+            PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM product_relationships WHERE (src_product_id) = (?) OR (dst_product_id) = (?)
+            """);
+
+            statement.setInt(1, product_id);
+            statement.setInt(2, product_id);
+
+            if (statement.executeUpdate() == 0) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        }
     }
 
     // PRE: take a valid username string

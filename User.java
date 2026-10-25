@@ -52,4 +52,21 @@ public class User {
    public ArrayList<Product> getRecommendedProducts() {
       return new ArrayList<Product>(this.recommended_products);
    }
+
+   @Override 
+   public String toString() {
+      return String.format(
+         """
+         {
+            User: %s,
+            ID: %d,
+            used_products: %d,
+            recommended_products: %d
+         }""",
+         name,
+         user_id,
+         used_products.size(),
+         recommended_products.size()
+      );
+   }
 }
