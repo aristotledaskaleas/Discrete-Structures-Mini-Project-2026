@@ -143,6 +143,25 @@ public final class Database {
         }
     }
 
+    // PRE: take a product string
+    // POST: return true if product exists, false otherwise
+    public static boolean doesProductExist(String product) throws SQLException {
+        if (getProductID(product) != -1) return true; // has a productID -> automatically exists
+
+        try (Connection connection = connect()) {
+            PreparedStatement statement = connection.prepareStatement("""
+                SELECT * FROM products WHERE (product_name) LIKE (?)
+            """);
+
+            statement.setString(1, product);
+
+            try (ResultSet results = statement.executeQuery()) {
+                if (!results.next()) return false; // no query results -> product doesn't exist
+                return true; // returned a result -> exists
+            }
+        }
+    }
+
     // PRE: Take a valid username string
     // POST: add a user to the sql database based on username
     // false->failed, true->success
@@ -197,7 +216,7 @@ public final class Database {
             if (username.indexOf(";") != -1) return false;
 
             PreparedStatement statement = connection.prepareStatement("""
-                DELETE FROM users WHERE username = ?        
+                DELETE FROM users WHERE username LIKE ?        
             """);
             statement.setString(1, username);
 
@@ -215,7 +234,7 @@ public final class Database {
     // PRE: Product, Manufacturer [OPT.], Category
     // POST: Adds product to database false->failed, true->success
     public static boolean addProduct(String product, String manufacturer, String category) throws SQLException {
-        if (getProductID(product) != -1) return false; // product already exists
+        if (doesProductExist(product)) return false; // product already exists
 
         if (product == null || category == null) {
             return false;
@@ -283,7 +302,7 @@ public final class Database {
             if (product.indexOf(";") != -1) return false;
 
             PreparedStatement statement = connection.prepareStatement("""
-                DELETE FROM products WHERE product_name = ?        
+                DELETE FROM products WHERE product_name LIKE ?        
             """);
             statement.setString(1, product);
 
@@ -508,7 +527,7 @@ public final class Database {
 
         try (Connection connection = connect()) {
             PreparedStatement statement = connection.prepareStatement("""
-                SELECT user_id FROM users WHERE username = ?
+                SELECT user_id FROM users WHERE username LIKE ?
             """);
 
             statement.setString(1, username);
@@ -529,7 +548,7 @@ public final class Database {
 
         try (Connection connection = connect()) {
             PreparedStatement statement = connection.prepareStatement("""
-                SELECT product_id FROM products WHERE product_name = ?
+                SELECT product_id FROM products WHERE product_name LIKE ?
             """);
 
             statement.setString(1, product);

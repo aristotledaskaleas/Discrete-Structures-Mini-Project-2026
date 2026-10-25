@@ -12,6 +12,12 @@ public class Utilities {
 
     final static int MAX_RECOMMENDATIONS = 3;
 
+    final static int MIN_USERNAME_LENGTH = 3;
+    final static int MAX_USERNAME_LENGTH = 20;
+
+    final static int MIN_PRODUCT_LENGTH = 3;
+    final static int MAX_PRODUCT_LENGTH = 35;
+
 //#region UTILITY
     // PRE: Take a string (menu), and a string of allowed characters
     // POST: Serve a menu to a user and return a valid character
@@ -227,55 +233,151 @@ public class Utilities {
                 return false;
             }
         }
-
         return true;
+    }
+
+    public static boolean validateProductString(String product) {
+        // Allow only alphanumeric characters, underscores, and spaces.
+        char[] in = product.toCharArray();
+        for (char ch : in) {
+            if (!(((ch >= 'A' && ch <= 'Z') || ch == '_') || ((ch >= 'a' && ch <= 'z') || ch == '_' ))) {
+                if (ch >= '0' && ch <= '9') continue;
+                if (ch == ' ') continue;
+
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // PRE: take a user id
+    // POST: return true if user_id is valid (and has an associated user), false otherwise
+    public static boolean validateUserID(int user_id) {
+        try {
+            if (user_id < START_USER_ID || user_id > Database.getLastUserID()) {
+                System.out.println("User ID is out of range. (" + START_USER_ID + "-" + Database.getLastUserID() + ").");
+                return false;
+            }
+            if (Database.getUser(user_id) == null) {
+                System.out.println("There is no user associated with ID: " + user_id + ".");
+                return false;
+            }
+
+            return true;
+        } catch (SQLException e) {
+            System.out.println("A database error occurred: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // PRE: take a product id
+    // POST: return true of product_id is valid (and has an associated product), false otherwise
+    public static boolean validateProductID(int product_id) {
+        try {
+            if (product_id < START_PROD_ID || product_id > Database.getLastProdID()) {
+                System.out.println("Product ID is out of range. (" + START_USER_ID + "-" + Database.getLastProdID() + ").");
+                return false;
+            }
+            if (Database.getProduct(product_id) == null) {
+                System.out.println("There is no product associated with ID: " + product_id + ".");
+                return false;
+            }
+
+            return true;
+        } catch (SQLException e) {
+            System.out.println("A database error occurred: " + e.getMessage());
+            return false;
+        }
     }
 //#endregion
 
 //#region WRAPPER METHODS FOR Database.java
-    public static void addUser(String name) {
+
+    // PRE: Accept a name (username)
+    // POST: returns true if successfully added as user to database
+    // return false if username is invalid or if failed to add user to database
+    public static boolean addUser(String name) {
         try {
             if (!validateUsernameString(name)) {
                 System.out.println("Username contains illegal characters (must be alphanumerical with underscores)!");
-                return;
+                return false;
+            }
+
+            if (name.length() < MIN_USERNAME_LENGTH || name.length() > MAX_USERNAME_LENGTH) {
+                System.out.println("Username MUST be between " + MIN_USERNAME_LENGTH + " and " + MAX_USERNAME_LENGTH + " characters!");
+                return false;
             }
 
             if (!Database.doesUserExist(name)) {
                 if (Database.addUser(name)) {
                     System.out.println("Registered '" + name + "' as a user.");
+                    return true;
                 } else {
                     System.out.println("Failed to register '" + name + "' as a user.");
+                    return false;
                 }
             } else {
                 System.out.println("'" + name + "' is already registered!");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void removeUser(String name) {
+    // PRE: Accept a name (username)
+    // POST: returns true if successfully removed as user from database (and all associated relationships)
+    // return false if username is invalid or if failed to remove user from database
+    public static boolean removeUser(String name) {
         try {
-            if (Database.removeUser(name)) {
-                System.out.println("Deleted user '" + name + "'.");
-
-                // Remove all relations of user
+            if (!validateUsernameString(name)) {
+                System.out.println("Username is invalid.");
+                return false;
+            }
+            if (Database.doesUserExist(name)) {
                 int user_id = Database.getUserID(name);
-                if (user_id < 0) return;
+                if (Database.removeUser(name)) {
+                    System.out.println("Deleted user '" + name + "'.");
 
-                Database.removeAllUserProductRelationsByUserID(user_id);
+                    // Remove all relations of user
+                    if (user_id < 0) return true;
+
+                    Database.removeAllUserProductRelationsByUserID(user_id);
+                    return true;
+                } else {
+                    System.out.println("Failed to delete user '" + name + "'.");
+                    return false;
+                }
             } else {
-                System.out.println("Failed to delete user '" + name + "'.");
+                System.out.println("User '" + name + "' does not exist.");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void addProduct(String product, String manufacturer, String category) {
+    // PRE: Accept a product name, manufacturer (optional), and a category (matching defined ones in Main)
+    // POST: returns true if successfully added as product to database
+    // return false if product is invalid or if failed to add product to database
+    // prints hint to user if category is invalid
+    public static boolean addProduct(String product, String manufacturer, String category) {
         try {
+            if (!validateProductString(product)) {
+                System.out.println("Product is invalid [must be alphanumerical, with underscores or spaces]");
+                return false;
+            }
+
+            if (product.length() < MIN_PRODUCT_LENGTH || product.length() > MAX_PRODUCT_LENGTH) {
+                System.out.println("Product length must be between " + MIN_PRODUCT_LENGTH + " and " + MAX_PRODUCT_LENGTH + " characters!");
+                return false;
+            }
+
             if (Database.addProduct(product, manufacturer, category)) {
                 System.out.println("Registered '" + String.join(", ",product,manufacturer,category) + "' as a new product.");
+                return true;
             } else {
                 System.out.println("Failed to register '" + String.join(", ",product,manufacturer,category) + "' as a new product.");
                 
@@ -292,86 +394,141 @@ public class Utilities {
                         System.out.println("  "+c);
                     } System.out.println();
                 }
+
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void removeProduct(String product) {
+    // PRE: Accept a product name
+    // POST: returns true if successfully removed as product from database (along with relations)
+    // return false if failed to remove product from database
+    public static boolean removeProduct(String product) {
         try {
+            int product_id = Database.getProductID(product);
+
             if (Database.removeProduct(product)) {
                 System.out.println("Deleted product '" + product + "'.");
 
                 // Delete all product relations
-                int product_id = Database.getProductID(product);
-                if (product_id < 0) return;
+                if (product_id < 0) return true;
 
                 Database.removeAllUserProductRelationsByProductID(product_id);
                 Database.removeAllProductRelations(product_id);
+
+                return true;
             } else {
                 System.out.println("Failed to delete product '" + product + "'.");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void addUserProductRelation(int user_id, int product_id) {
+    // PRE: Accept user_id and product_id
+    // POST: returns true if successfully added as user-product relation to database
+    // return false if failed to add or IDs are invalid
+    public static boolean addUserProductRelation(int user_id, int product_id) {
         try {
+            if (!validateUserID(user_id)) return false;
+            if (!validateProductID(product_id)) return false;
+
             if (Database.addUserProductRelation(user_id, product_id)) {
                 System.out.println("Added user-product relation '" + user_id+"->"+product_id + "'.");
+                return true;
             } else {
                 System.out.println("Failed to add user-product relation '" + user_id+"->"+product_id + "'.");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void removeUserProductRelation(int user_id, int product_id) {
+    // PRE: Accept user_id and product_id
+    // POST: returns true if successfully removed user-product relation from database
+    // return false if failed to remove or IDs are invalid
+    public static boolean removeUserProductRelation(int user_id, int product_id) {
         try {
+            if (!validateUserID(user_id)) return false;
+            if (!validateProductID(product_id)) return false;
+
             if (Database.removeUserProductRelation(user_id, product_id)) {
                 System.out.println("Removed user-product relation '" + user_id+"->"+product_id + "'.");
+                return true;
             } else {
                 System.out.println("Failed to remove user-product relation '" + user_id+"->"+product_id + "'.");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void addProductRelation(int src_product_id, int dst_product_id, double weight) {
+    // PRE: Accept 2 product IDs and a weight
+    // POST: returns true if successfully added as product-product relation to database
+    // return false if failed to add, IDs are invalid, or weight is invalid
+    public static boolean addProductRelation(int src_product_id, int dst_product_id, double weight) {
         try {
+            if (!validateProductID(dst_product_id)) return false;
+            if (!validateProductID(src_product_id)) return false;
+
+            if (weight <= 0.0 || weight >= 1.0) {
+                System.out.println("Weight should be greater than 0.0 and less than or equal to 1.0!");
+                return false;
+            }
+
             if (Database.addProductRelation(src_product_id, dst_product_id, weight)) {
                 System.out.println("Added product relation '" + src_product_id+"->"+dst_product_id+":"+weight + "'.");
+                return true;
             } else {
                 System.out.println("Failed to add product relation '" + src_product_id+"->"+dst_product_id+":"+weight + "'.");
 
                 if (src_product_id==dst_product_id) {
-                    System.out.println("Both product ID's MUST be dissimilar.");
+                    System.out.println("Both product IDs MUST be dissimilar.");
                 }
                 if (weight <= 0.0 || weight > 1.0) {
                     System.out.println("Weight must be greater than 0.0 and less than 1.0.");
                 }
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void removeProductRelation(int src_product_id, int dst_product_id) {
+    // PRE: Accept 2 product IDs
+    // POST: returns true if successfully removed product-product relation from database
+    // return false if failed to add or IDs are invalid
+    public static boolean removeProductRelation(int src_product_id, int dst_product_id) {
         try {
+            if (!validateProductID(dst_product_id)) return false;
+            if (!validateProductID(src_product_id)) return false;
+
             if (Database.removeProductRelation(src_product_id, dst_product_id)) {
                 System.out.println("Removed user-product relation '" + src_product_id+"->"+dst_product_id + "'.");
+                return true;
             } else {
                 System.out.println("Failed to remove user-product relation '" + src_product_id+"->"+dst_product_id + "'.");
+                return false;
             }
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
+            return false;
         }    
     }
 
+    // PRE: Accept a username
+    // POST: Retrieve the user id of the record with a matching username
+    // returns user_id or -1 if not found
     public static int getUserID(String username) {
         try {
             final int id = Database.getUserID(username);
@@ -387,6 +544,9 @@ public class Utilities {
 
     }
 
+    // PRE: Accept a product
+    // POST: Retrieve the product_id of the record with a matching product_name
+    // returns product_id or -1 if not found
     public static int getProductID(String product) {
         try {
             final int id = Database.getProductID(product);
@@ -401,20 +561,29 @@ public class Utilities {
         }
     }
 
+    // PRE: Accept 2 product IDs
+    // POST: Get the associated product weight with the product IDs
+    // returns weight if found, or -1.0 if not found or if IDs are invalid
     public static double getRelationWeight(int src_product_id, int dst_product_id) {
         try {
+            if (!validateProductID(dst_product_id)) return -1.0;
+            if (!validateProductID(src_product_id)) return -1.0;
+
             final double weight = Database.getRelationWeight(src_product_id, dst_product_id);
-            if (weight < 0.0) {
+            if (weight <= 0.0) {
                 System.out.println("Product relation '" + src_product_id+"->"+dst_product_id + "' does not exist.");
             }
 
             return weight;
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
-            return -1;
+            return -1.0;
         }
     }
 
+    // PRE: Accept user ID
+    // POST: Get the associated username on the record with the user ID
+    // returns username if found, or null if not found
     public static String getUser(int user_id) {
         try {
             final String user = Database.getUser(user_id);
@@ -429,6 +598,9 @@ public class Utilities {
         }
     }
 
+    // PRE: Accept product ID
+    // POST: Get the associated product_name on the record with the product ID
+    // returns product_name if found, or null if not found
     public static String getProduct(int product_id) {
         try {
             final String product = Database.getProduct(product_id);
@@ -677,6 +849,9 @@ public class Utilities {
     }
 //#endregion
 //#region INITIALIZATION
+
+    // PRE: String[] of authors, program name, and the program year
+    // POST: Simply prints the program name, year, and author(s) on one line.
     public static void printStartInit(final String[] author_list, final String program_name, final int year) {
   
         int num_authors = author_list.length;

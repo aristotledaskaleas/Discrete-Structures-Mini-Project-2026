@@ -259,6 +259,6 @@ public class Main {
             String date = (ZonedDateTime.now(ZoneId.of("America/Chicago"))).format(DateTimeFormatter.ofPattern("EEEE, MMMM d, h:mm:ss a"));
             System.out.println("Program finished executing on " + date + ".");
         }
-//#endregion    
+//#endregion
     }
 }
