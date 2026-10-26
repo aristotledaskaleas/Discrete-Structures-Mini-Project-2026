@@ -240,7 +240,7 @@ public class Main {
             System.out.println("Program encountered an error: " + e.getMessage());
         } finally {
             String date = (ZonedDateTime.now(ZoneId.of("America/Chicago"))).format(DateTimeFormatter.ofPattern("EEEE, MMMM d, h:mm:ss a"));
-            System.out.println("Program finished executing on " + date + ".");
+            System.out.println("Program finished executing on " + date + " CST.");
         }
 //#endregion
     }
