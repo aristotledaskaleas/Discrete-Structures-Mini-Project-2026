@@ -131,10 +131,7 @@ public class Main {
                                             }
 
                                             user_id = Integer.parseInt(tmp.trim());
-                                            if (user_id < Constants.START_USER_ID) { // too small
-                                                System.out.println("User ID must be greater than " + Constants.START_USER_ID + ".");
-                                                continue;
-                                            } else if (Utilities.validateUserID(user_id)) {
+                                            if (Utilities.validateUserID(user_id)) {
                                                 continue;
                                             }
 
