@@ -14,7 +14,4 @@ if not exist "%JDBC_JAR%" (
 REM Compile the program with the SQLite JDBC driver
 javac --release 25 -cp ".;%JDBC_JAR%" *.java
 
-REM Execute the program with native access enabled
-java --enable-native-access=ALL-UNNAMED -cp ".;%JDBC_JAR%" Main
-
 echo "Successfully compiled! Use '.\run.bat' to execute."
