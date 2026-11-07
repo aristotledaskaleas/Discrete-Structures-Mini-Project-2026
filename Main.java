@@ -12,7 +12,7 @@ import java.util.Scanner;
 //   All user information and data is persistent in SQL database.
 //
 // Author(s): Aristotle Daskaleas
-// Date: 2026 (October-November)
+// Date: 2026 (October-December)
 //*/
 
 //*

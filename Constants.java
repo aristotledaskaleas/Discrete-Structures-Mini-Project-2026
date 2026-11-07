@@ -48,7 +48,7 @@ public final class Constants {
 
     // Specify arbitrary product name length restrictions
     final static int MIN_PRODUCT_LENGTH = 3; 
-    final static int MAX_PRODUCT_LENGTH = 35; // what is exceeds 35 characters? woe betide whatever it may be
+    final static int MAX_PRODUCT_LENGTH = 35; // what exceeds 35 characters? woe betide whatever it may be
 
     // Define a thoughtful string for the menu
     final static String menu = """
@@ -67,7 +67,7 @@ public final class Constants {
           M.] Generate graph          Q.] Quit
     """;
 
-    final static String allowedCharacters = "ABCDEFGHIJKLMQ"; // The allowed characters (must be capital) [based on menu]
+    final static String allowedCharacters = "ABCDEFGHIJKLMQ"; // The allowed characters (must be capital) [coincides with menu]
 
     private Constants(){} // purely static constants, no need for instantiation
 }
