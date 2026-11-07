@@ -131,7 +131,7 @@ public class Main {
                                             }
 
                                             user_id = Integer.parseInt(tmp.trim());
-                                            if (Utilities.validateUserID(user_id)) {
+                                            if (!Utilities.validateUserID(user_id)) {
                                                 continue;
                                             }
 
