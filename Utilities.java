@@ -69,7 +69,7 @@ public class Utilities {
 
             for (char c : allowed) {
                 if (c == choice) {
-                    return c;
+                    return c; // valid menu selection
                 }
             }
 
