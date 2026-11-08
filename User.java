@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
-// This class stores a single instance of a PRODUCT-PRODUCT relationship from the database.
+// This class stores a single instance of a user_id + username from the database.
 //*/
 
 //*/

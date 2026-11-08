@@ -2,19 +2,11 @@ import java.nio.file.Path;
 
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
-// This class stores a single instance of a PRODUCT-PRODUCT relationship from the database.
+// This class stores all constants used throughout the program.
 //*/
 
 //*/
-// User(int,String) is the only valid constructor because
-//   if all of these fields are not known at the time of construction, the
-//   database was incorrectly accessed or the record is invalid. Additionally,
-//   usernames and ID's are identifying information and should not be changed later.
-//   to make a field unchangeable, it MUST be declared upfront.
-//
-// Omitting (some) mutators allow these records to become (partially) immutable.
-// NOTE: We only want to be able to add used or recommended products
-//   NAMES AND ID's SHOULD NOT BE CHANGEABLE!
+// This class should NOT be instantiated as it just stores static constants.
 //*/
 
 public final class Constants {
