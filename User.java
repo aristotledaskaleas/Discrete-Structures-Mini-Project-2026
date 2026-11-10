@@ -89,6 +89,10 @@ public class User {
       return new ArrayList<Product>(this.recommended_products);
    }
 
+   public boolean isUsingProduct(Product p) {
+      return this.used_products.stream().anyMatch(pr -> pr.name().equalsIgnoreCase(p.name()));
+   }
+
    @Override 
    public String toString() { // .JSON-like format because it's readable and cool 8)
       return String.format(

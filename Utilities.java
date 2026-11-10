@@ -1,5 +1,8 @@
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Map;
@@ -137,16 +140,8 @@ public class Utilities {
         int other = 0;
         try {
             for (User u : users) {
-                final int uid = u.getUserID();
-                for (int i = Constants.START_PROD_ID; i < Database.getLastProdID(); i++) {
-                    if (Database.isUserProductRelated(uid, i)) {
-                        Product p = null;
-                        for (Product prod : products) {
-                            if (prod.product_id() == i) {
-                                p = prod;
-                                break;
-                            }
-                        }
+                for (Product p : products) {
+                    if (Database.isUserProductRelated(u.getUserID(), p.product_id())) { 
                         u.addUsedProduct(p);
                         ++other;
                     }
@@ -293,7 +288,7 @@ public class Utilities {
     public static boolean validateProductID(int product_id) {
         try {
             if (product_id < Constants.START_PROD_ID || product_id > Database.getLastProdID()) {
-                System.out.println("Product ID is out of range. (" + Constants.START_USER_ID + "-" + Database.getLastProdID() + ").");
+                System.out.println("Product ID is out of range. (" + Constants.START_PROD_ID + "-" + Database.getLastProdID() + ").");
                 return false;
             }
             if (Database.getProduct(product_id) == null) {
@@ -906,7 +901,8 @@ public class Utilities {
     }
 
     public static void printEndInit() {
-        System.out.println("Program has been initialized!\n");
+        String date = (ZonedDateTime.now(ZoneId.of("America/Chicago"))).format(DateTimeFormatter.ofPattern("EEEE, MMMM d, h:mm:ss a"));
+        System.out.println("Program has been initialized.\n\nCurrent date-time: " + date + " CST.");
     }
 //#endregion
 }
