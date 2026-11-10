@@ -157,6 +157,7 @@ public class Utilities {
         System.out.println("Populated " + other + " user-product relationships into program.");
     }
 
+    //todo
     public static void populateUserProductRecommendations(ArrayList<User> users, ArrayList<ProductRelation> relations) {
         for (User u : users) {
             if (u.getUsedProducts().isEmpty()) {
