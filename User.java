@@ -98,15 +98,15 @@ public class User {
       return String.format(
          """
          {
-            User: %s,
-            ID: %d,
+            username: %s,
+            id: %d,
             used_products: %d,
             recommended_products: %d
          }""",
-         name,
-         user_id,
-         used_products.size(),
-         recommended_products.size()
+         this.name,
+         this.user_id,
+         this.used_products.size(),
+         this.recommended_products.size()
       );
    }
 }
