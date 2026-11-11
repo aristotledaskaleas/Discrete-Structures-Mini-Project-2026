@@ -257,7 +257,7 @@ public final class Database {
 
         boolean cont = false;
         for (String c : Constants.CATEGORIES) { // only allow valid categories to be added
-            if (c.equals(category)) {
+            if (c.equalsIgnoreCase(category)) {
                 cont = true; break;
             }
         }
