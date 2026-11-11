@@ -88,10 +88,12 @@ public class Utilities {
             while (counter <= Database.getLastProdID()) { // from start to finish, add all products
                 // Name, Manufacturer, Category
                 String[] prod_data = Database.getProductFull(counter);
-
-                if (prod_data.length != 3) {
+                
+                // skip invalid records
+                if (prod_data == null || prod_data.length != 3) {
                     ++counter; continue;
                 }
+
                 products.add(new Product(counter, prod_data[0], prod_data[1], prod_data[2]));
 
                 ++counter; ++other;
@@ -142,7 +144,7 @@ public class Utilities {
             for (User u : users) {
                 for (Product p : products) {
                     if (Database.isUserProductRelated(u.getUserID(), p.product_id())) { 
-                        u.addUsedProduct(p);
+                        if (!u.isUsingProduct(p)) u.addUsedProduct(p);
                         ++other;
                     }
                 }
@@ -152,17 +154,21 @@ public class Utilities {
         System.out.println("Populated " + other + " user-product relationships into program.");
     }
 
-    //todo
+    // TODO: implement method (recommendation system)
+    // PRE: take array lists of users and product_relations
+    // POST: populates recommended product lists in each User instance comparing used products to unused products
+    // and adding similar products based on weights and categories
     public static void populateUserProductRecommendations(ArrayList<User> users, ArrayList<ProductRelation> relations) {
         for (User u : users) {
             if (u.getUsedProducts().isEmpty()) {
-                // add 3 most popular recommendations for those with no data
+                // add Constants.MAX_RECOMMENDATIONS most popular recommendations for those with no data
             } else {
-                // get 3 most similar recommendations based on used products
+                // get Constants.MAX_RECOMMENDATIONS most similar recommendations based on used products
             }
         }
     }
 
+    // TODO: implement method (graph)
     // PRE: take list of users
     // POST: make user->recommendation and user->product maps and use
     // information to generate a visual graph
@@ -214,7 +220,7 @@ public class Utilities {
 
         while (!quit) {
             System.out.print("\n" + prompt);
-            output = input.nextLine();
+            output = input.nextLine().trim();
             System.out.print("Does this look correct '" + output + "' (y/N) [q:cancel]? ");
             try {
                 char ch = input.nextLine().trim().toLowerCase().charAt(0);
@@ -238,6 +244,8 @@ public class Utilities {
 
     public static boolean validateUsernameString(String username) {
         // Allow only alphanumeric characters and underscores.
+        if (username == null) return false;
+
         char[] in = username.toCharArray();
         for (char ch : in) {
             if (!(((ch >= 'A' && ch <= 'Z') || ch == '_') || ((ch >= 'a' && ch <= 'z') || ch == '_' ))) {
@@ -251,6 +259,8 @@ public class Utilities {
 
     public static boolean validateProductString(String product) {
         // Allow only alphanumeric characters, underscores, and spaces.
+        if (product == null) return false;
+
         char[] in = product.toCharArray();
         for (char ch : in) {
             if (!(((ch >= 'A' && ch <= 'Z') || ch == '_') || ((ch >= 'a' && ch <= 'z') || ch == '_' ))) {
@@ -354,7 +364,7 @@ public class Utilities {
                     System.out.println("Deleted user '" + name + "'.");
 
                     // Remove all relations of user
-                    if (user_id < 0) return true;
+                    if (user_id < 0) return false;
 
                     Database.removeAllUserProductRelationsByUserID(user_id);
                     return true;
@@ -402,7 +412,7 @@ public class Utilities {
                 // Ensure a proper category was supplied
                 boolean found = false;
                 for (String c : Constants.CATEGORIES) {
-                    if (c.equals(category)) {
+                    if (c.equalsIgnoreCase(category)) {
                         found = true; break;
                     }
                 }
@@ -437,8 +447,8 @@ public class Utilities {
                 System.out.println("Deleted product '" + product + "'.");
 
                 // Delete all product relations
-                if (product_id < 0) return true;
-
+                if (product_id < 0) return false;
+                
                 Database.removeAllUserProductRelationsByProductID(product_id);
                 Database.removeAllProductRelations(product_id);
 
@@ -876,18 +886,17 @@ public class Utilities {
 
     // PRE: String[] of authors, program name, and the program year
     // POST: Simply prints the program name, year, and author(s) on one line.
+    // author_list may be null, and it will not print any authors
     public static void printStartInit(final String[] author_list, final String program_name, final int year) {
   
-        int num_authors = author_list.length;
+        int num_authors = (author_list == null) ? 0 : author_list.length;
+
+        // multiple authors
         if (num_authors > 1) { // account for trailing comma [or an empty trailing value]
             if (author_list[num_authors-1].isEmpty()) {
                 --num_authors;
             }
-        }
 
-        if (num_authors == 1) { // one author
-            System.out.print(program_name + " - " + year + ": " + author_list[0].trim());
-        } else { // multiple authors
             System.out.print(program_name + " - " + year + ": ");
             for (int i = 0; i < num_authors; i++) {
                 System.out.print(author_list[i].trim());
@@ -895,6 +904,10 @@ public class Utilities {
                     System.out.print(", ");
                 }
             }
+        } else if (num_authors == 1) { // one author
+            System.out.print(program_name + " - " + year + ": " + author_list[0].trim());
+        } else { // no authors (bad logic, but whatever)
+            System.out.print(program_name + " - " + year);
         }
 
         System.out.println("\n\nInitializing..");
