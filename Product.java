@@ -25,7 +25,35 @@ public class Product implements Cloneable {
         this.product_id = product_id;
         this.name = name;
         this.manufacturer = manufacturer;
-        this.category = category;
+
+        // capitalize category
+        if (category != null && category.length() > 0) { // non-null AND has at least one character
+            String[] cat_token = category.split(" ");
+            if (cat_token.length == 1) {
+                String begin_char = String.valueOf(category.toUpperCase().charAt(0));
+                if (category.length() == 1) { this.category = begin_char; }
+                else {
+                    this.category = begin_char + category.toLowerCase().substring(1);
+                }
+            } else {
+                String build_string = "";
+                final int total_additions = cat_token.length;
+                int tracker = 0;
+                for (String s : cat_token) {
+                    ++tracker;
+
+                    String begin_char = String.valueOf(category.toUpperCase().charAt(0));
+                    if (s.length() == 1) {
+                        build_string += begin_char;  
+                    } else {
+                        build_string += begin_char + s.toLowerCase().substring(1);
+                    }
+                    if (tracker < total_additions) { build_string += " "; }
+                }
+
+                this.category = build_string;
+            }
+        } else { this.category = category; }
     }
 
     // accessors
@@ -40,5 +68,21 @@ public class Product implements Cloneable {
         return new Product(this.product_id, this.name, this.manufacturer, this.category);
     }
 
+    @Override 
+    public String toString() {
+        return String.format(
+            """
+            {
+                product_name: %s,
+                id: %d,
+                manufacturer: %s,
+                category: %s
+            }""",
+            this.name,
+            this.product_id,
+            (this.manufacturer == null || this.manufacturer.length() == 0) ? "NONE" : this.manufacturer,
+            this.category
+        );
+   }
     // do not add mutators (immutable records) [thx :3]
 }
