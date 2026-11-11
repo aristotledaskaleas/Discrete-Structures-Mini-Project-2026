@@ -4,6 +4,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.sql.SQLException;
+import java.util.Arrays;
 
 //*/
 // "User Recommendation Database With Bipartite Graphing"
@@ -495,38 +497,99 @@ public class Main {
                         }
                         if (quit) break;
 
-                        System.out.println("\nUser-Product Relationships:");
                         int entries = 0;
 
                         if (view_all) { // view all user information
-                            for (User u : users) {
-                                ++entries;
-                                System.out.printf(
-                                    """
-                                    {
-                                        User: %s,
-                                        ID: %d,
-                                        used_products:
-                                        {
-                                          %s
-                                        }
+                            boolean cancel = false;
+                            boolean isUserSearch = false;
+                            while (true) {
+                                String selection = Utilities.getUserInput("View by [p]roducts or [u]sers: ", input);
+                                if (selection == null) {
+                                    cancel = true; break;
+                                }
+                                switch (selection.trim().toLowerCase()) {
+                                    case "p" -> {}
+                                    case "u" -> { isUserSearch = true; }
+                                    case "q" -> { cancel = true; }
+                                    default -> {
+                                        System.out.println("Bad selection [MUST be in 'PUQ'].\n");
+                                        continue;
                                     }
-                                    """, 
-                                    u.getName(),
-                                    u.getUserID(),
-                                    String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()))
-                                );
+                                }
+                                
+                                break;
+                            }
+                            if (cancel) break;
+
+                            System.out.println("\nUser-Product Relationships:");
+
+                            if (isUserSearch) {
+                                for (User u : users) {
+                                    ++entries;
+                                    String csv_used_products = String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()));
+                                    if (csv_used_products == null || csv_used_products.length() == 0) {
+                                        csv_used_products = "NONE";
+                                    }
+                                    System.out.printf(
+                                        """
+                                        {
+                                            username: %s,
+                                            id: %d,
+                                            used_products:
+                                            {
+                                              %s
+                                            }
+                                        }
+                                        """, 
+                                        u.getName(),
+                                        u.getUserID(),
+                                        csv_used_products
+                                    );
+                                }
+                            } else { // product search
+                                for (Product p : products) {
+                                    ++entries;
+
+                                    // get all usernames of people using the product (comma-separated)
+                                    String csv_user_relations = String.join(", ", users.stream().filter(u -> u.isUsingProduct(p)).map(User::getName).collect(Collectors.toList()));
+                                    if (csv_user_relations == null || csv_user_relations.length() == 0) {
+                                        csv_user_relations = "NONE";
+                                    }
+
+                                    System.out.printf(
+                                        """
+                                        {
+                                            product_name: %s,
+                                            id: %d,
+                                            related_users:
+                                            {
+                                              %s
+                                            }
+                                        }
+                                        """, 
+                                        p.name(),
+                                        p.product_id(),
+                                        csv_user_relations
+                                    );
+                                }
                             }
                         } else {
+                            System.out.println("\nUser-Product Relationships:");
+
                             if (isSearchModeUser) { // search by user
                                 for (User u : users) {
                                     if (u.getUserID() == user_id) {
                                         ++entries;
+                                        String csv_used_products = String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()));
+                                        if (csv_used_products == null || csv_used_products.length() == 0) {
+                                            csv_used_products = "NONE";
+                                        }
+
                                         System.out.printf(
                                             """
                                             {
-                                                User: %s,
-                                                ID: %d,
+                                                username: %s,
+                                                id: %d,
                                                 used_products:
                                                 {
                                                   %s
@@ -535,7 +598,7 @@ public class Main {
                                             """, 
                                             u.getName(),
                                             u.getUserID(),
-                                            String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()))
+                                            csv_used_products
                                         );
                                     }
                                 }
@@ -560,6 +623,11 @@ public class Main {
                                     break;
                                 }
 
+                                String csv_related_users = String.join(", ", matching.stream().map(User::getName).collect(Collectors.toList()));
+                                if (csv_related_users == null || csv_related_users.length() == 0) {
+                                    csv_related_users = "NONE";
+                                }
+
                                 System.out.printf(
                                     """
                                     {
@@ -573,7 +641,7 @@ public class Main {
                                     """, 
                                     target.name(),
                                     target.product_id(),
-                                    String.join(", ", matching.stream().map(User::getName).collect(Collectors.toList()))
+                                    csv_related_users
                                 );
 
                             } else {
@@ -585,12 +653,187 @@ public class Main {
                         break;
                     }
                     case 'G': { // Register product
+                        product = Utilities.getUserInput("Enter a product name to add: ", input);
+                        if (product == null) break;
+
+                        try {
+                            if (Database.doesProductExist(product)) {
+                                System.out.println("Error: Product already exists!\n");
+                                break;
+                            }
+                        } catch (SQLException e) {}
+
+                        String manufacturer = null;
+                        boolean cancel = false;
+                        while (true) {
+                            System.out.print("Enter a manufacturer (y:yes, n:leave null, q:cancel)? ");
+                            String ch = input.nextLine().toLowerCase();
+                            System.out.println();
+
+                            if (ch == null || ch.length() == 0) {
+                                System.out.println("Selection cannot be empty.");
+                                continue;
+                            }
+
+                            if (ch.charAt(0) == 'y') {
+                                manufacturer = Utilities.getUserInput("Enter a manufacturer: ", input);
+                                if (manufacturer == null) { cancel = true; }
+                                if (manufacturer.length() == 0) { manufacturer = null; } // make blank string same as null, but do not quit
+                                break;
+                            } 
+                            else if (ch.charAt(0) == 'n') { break; }
+                            else if (ch.charAt(0) == 'q') { cancel = true; break; }
+                            else { System.out.println("Bad selection."); continue; }
+                        }
+                        if (cancel) break;
+
+                        String category = null;
+                        cancel = false;
+                        int invalid_counter = 3;
+
+                        // while category is invalid, keep prompting user
+                        do {
+                            if (invalid_counter >= 3) { // hint valid categories
+                                System.out.println(
+                                    "Available Categories:\n" +
+                                    String.join("\n", Constants.CATEGORIES)
+                                );
+                                invalid_counter = 0;
+                            }
+
+                            category = Utilities.getUserInput("Enter a (valid) category: ", input);
+                            if (category == null) break;
+
+                            // base case: quit
+                            if (category.equalsIgnoreCase("q")) {
+                                cancel = true; break;
+                            }
+
+                            // base case: valid category
+                            if (Arrays.stream(Constants.CATEGORIES).anyMatch(category::equalsIgnoreCase)) {
+                                break;
+                            }
+
+                            // invalid
+                            ++invalid_counter;
+                            System.out.println("That is NOT a valid category, try again.");
+                        } while (true);
+
+                        if (cancel || category == null) break;
+
+                    
+                        if (!Utilities.addProduct(product, manufacturer, category)) {
+                            System.out.println("Failed to register product!");
+                            break;
+                        }
+
+                        products.clear();
+                        Utilities.populateProductList(products); // update product list
+
                         break;
                     }
                     case 'H': { // Remove product
+                        product = Utilities.getUserInput("Enter a product name to remove: ", input);
+                        
+                        if (product == null) break;
+
+                        if (!Utilities.removeProduct(product)) {
+                            System.out.println("Failed to remove product!");
+                            break;
+                        }
+
+                        // clear products and product relations and rebuild
+                        products.clear();
+                        Utilities.populateProductList(products);
+
+                        productRelations.clear();
+                        Utilities.populateProductRelationList(productRelations);
+
+                        Utilities.populateUserProductRelations(users, products);
+
                         break;
                     }
                     case 'I': { // View products [ w/ opt. to search single product/id]
+                        product = null;
+                        product_id = -1;
+                        confirm = false;
+                        quit = false;
+                        boolean view_all = false;
+                        
+                        while (!confirm) {
+                            System.out.print("View [a]ll, or view by [p]roduct_name or product_[i]d [q:cancel]? ");
+                            try {
+                                char ch = input.nextLine().trim().toLowerCase().charAt(0);
+                                if (ch == 'a') { // view all
+                                    confirm = true;
+                                    view_all = true;
+                                } else if (ch == 'p') { // by product name
+                                    product = Utilities.getUserInput("Enter a product name: ", input);
+                                    if (product == null) {
+                                        quit = true;
+                                    } confirm = true;
+                                } else if (ch == 'i') { // by user_id
+                                    while (true) {
+                                        try {
+                                            String tmp = Utilities.getUserInput("Enter a product ID: ", input);
+                                            if (tmp == null) {
+                                                quit = true; confirm = true; break;
+                                            }
+
+                                            product_id = Integer.parseInt(tmp.trim());
+                                            if (!Utilities.validateProductID(product_id)) {
+                                                continue;
+                                            }
+
+                                            confirm = true;
+                                            break;
+                                        } catch (NumberFormatException e) {
+                                            System.out.println("Product ID MUST be an integer!");
+                                            continue;
+                                        }
+                                    }
+                                } else if (ch == 'q') { // cancel
+                                    System.out.println("Canceled.\n");
+                                    quit = true; confirm = true;
+                                } else { // neither a, p, i, nor q
+                                    System.out.println("trigger re-prompt.");
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                System.out.println("trigger re-prompt.");
+                            }
+                        }
+
+                        if (quit) break;
+
+                        System.out.println("\nProduct information:");
+                        int entries = 0;
+
+                        if (view_all) { // view all product information
+                            for (Product p : products) {
+                                ++entries;
+                                System.out.println(p);
+                            }
+                        } else {
+                            if (product_id != -1) { // search by product-id
+                                for (Product p : products) {
+                                    if (p.product_id() == product_id) {
+                                        ++entries;
+                                        System.out.println(p);
+                                    }
+                                }
+                            } else if (product != null) { // search by product name
+                                for (Product p : products) {
+                                    if (p.name().equalsIgnoreCase(product.toLowerCase())) {
+                                        ++entries;
+                                        System.out.println(p);
+                                    }
+                                }
+                            } else {
+                                System.out.println("Query error.");
+                            }
+                        }
+                        System.out.println("END [" + entries + " entries]\n");
+
                         break;
                     }
                     case 'J': { // Register product-product relationship
