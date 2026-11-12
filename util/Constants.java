@@ -20,6 +20,7 @@ public final class Constants {
 
     // Database information
     // acquire absolute path of Main.java, then resolve the sql directory and the needed files therein
+    final public static Path SCHEMA_LOC = Paths.get("").toAbsolutePath().resolve("sql").resolve("schema.sql");
     final public static Path DATABASE_PATH = Paths.get("").toAbsolutePath().resolve("sql").resolve("database.db"); // hardcoded 'database.db'
     final public static String DATABASE_LOC = "jdbc:sqlite:" + DATABASE_PATH.toAbsolutePath(); // specify JBDC driver
 

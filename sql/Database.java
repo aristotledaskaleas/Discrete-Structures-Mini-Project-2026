@@ -1,9 +1,7 @@
 package sql;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -32,7 +30,6 @@ import util.Constants;
 //*/
 
 public final class Database {
-    final public static Path SCHEMA_LOC = Paths.get("").toAbsolutePath().resolve("sql").resolve("schema.sql");
 
     private Database(){} // make uninstantiable [only static methods are used]
 
@@ -55,7 +52,7 @@ public final class Database {
        String schema;
 
         try {
-            schema = Files.readString(SCHEMA_LOC);
+            schema = Files.readString(Constants.SCHEMA_LOC);
         } catch (IOException e) {
             throw new IOException("Schema could not be retrieved.");
         }

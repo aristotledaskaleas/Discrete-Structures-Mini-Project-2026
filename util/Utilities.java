@@ -673,7 +673,7 @@ public class Utilities {
             if (!Files.exists(Constants.DATABASE_PATH)) { // database.db does not exist
                 System.out.println("NOTICE: database.db is not found, initializing database...");
 
-                if (!Files.exists(Database.SCHEMA_LOC)) {
+                if (!Files.exists(Constants.SCHEMA_LOC)) {
                     System.out.println("ERROR: schema.sql is not found, cannot initialize database!");
                     return false;
                 }
