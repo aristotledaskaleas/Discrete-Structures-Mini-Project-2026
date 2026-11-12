@@ -1,3 +1,5 @@
+package util;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -8,6 +10,10 @@ import java.util.Scanner;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
+import java.nio.file.Files;
+import sql.Database;
+import datastructures.*;
+
 
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
@@ -382,6 +388,18 @@ public class Utilities {
         }
     }
 
+    // PRE: Accept a product name
+    // POST: return true if the product exists and false if it does not
+    public static boolean doesProductExist(String product) {
+        if (product == null) return false;
+        try {
+            return Database.doesProductExist(product);
+        } catch (SQLException e) {
+            System.out.println("A SQL error occurred: " + e.getMessage());
+            return false;
+        }
+    }
+
     // PRE: Accept a product name, manufacturer (optional), and a category (matching defined ones in Main)
     // POST: returns true if successfully added as product to database
     // return false if product is invalid or if failed to add product to database
@@ -645,6 +663,30 @@ public class Utilities {
         } catch (SQLException e) {
             System.out.println("A database error occurred: " + e.getMessage());
             return null;
+        }
+    }
+
+    // PRE: none
+    // POST: Initializes the database
+    public static boolean initializeDatabase() {
+        try {
+            if (!Files.exists(Constants.DATABASE_PATH)) { // database.db does not exist
+                System.out.println("NOTICE: database.db is not found, initializing database...");
+
+                if (!Files.exists(Database.SCHEMA_LOC)) {
+                    System.out.println("ERROR: schema.sql is not found, cannot initialize database!");
+                    return false;
+                }
+                
+                Database.initialize();
+                System.out.println("Successfully initialized database.");
+            } 
+            // or database already exists
+
+            return true;
+        } catch (SQLException | IOException e) {
+            System.out.println("An error occured whilst initialzing database: " + e.getMessage());
+            return false;
         }
     }
 

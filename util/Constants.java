@@ -1,4 +1,7 @@
+package util;
+
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
@@ -11,15 +14,16 @@ import java.nio.file.Path;
 
 public final class Constants {
     // Main program information (Author(s), Year, Title)
-    final static String[] AUTHORS = {"Aristotle Daskaleas"};
-    final static int YEAR = 2026;
-    final static String PROG_NAME = "User Recommendation Database With Bipartite Graphing";
+    final public static String[] AUTHORS = {"Aristotle Daskaleas"};
+    final public static int YEAR = 2026;
+    final public static String PROG_NAME = "User Recommendation Database With Bipartite Graphing";
 
     // Database information
-    private final static Path DATABASE_PATH = Path.of("database.db"); // hardcoded 'database.db'
-    public final static String DATABASE_LOC = "jdbc:sqlite:" + DATABASE_PATH.toAbsolutePath(); // specify JBDC driver
+    // acquire absolute path of Main.java, then resolve the sql directory and the needed files therein
+    final public static Path DATABASE_PATH = Paths.get("").toAbsolutePath().resolve("sql").resolve("database.db"); // hardcoded 'database.db'
+    final public static String DATABASE_LOC = "jdbc:sqlite:" + DATABASE_PATH.toAbsolutePath(); // specify JBDC driver
 
-    final static String[] CATEGORIES = { // Only allow these categories to be searched for
+    final public static String[] CATEGORIES = { // Only allow these categories to be searched for
         "Food",
         "Video",
         "Audio",
@@ -43,7 +47,7 @@ public final class Constants {
     final static int MAX_PRODUCT_LENGTH = 35; // what exceeds 35 characters? woe betide whatever it may be
 
     // Define a thoughtful string for the menu
-    final static String menu = """
+    final public static String menu = """
     OPTIONS:
         USERS:                      USER-PRODUCT RELATIONSHIPS:
           A.] Register user           D.] Register relationship
@@ -59,7 +63,7 @@ public final class Constants {
           M.] Generate graph          Q.] Quit
     """;
 
-    final static String allowedCharacters = "ABCDEFGHIJKLMQ"; // The allowed characters (must be capital) [coincides with menu]
+    final public static String allowedCharacters = "ABCDEFGHIJKLMQ"; // The allowed characters (must be capital) [coincides with menu]
 
     private Constants(){} // purely static constants, no need for instantiation
 }

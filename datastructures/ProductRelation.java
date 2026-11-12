@@ -1,3 +1,5 @@
+package datastructures;
+
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing" 
 // This class stores a single instance of a PRODUCT-PRODUCT relationship from the database.
@@ -17,7 +19,7 @@ public class ProductRelation {
     private double weight;
 
     // constructor
-    ProductRelation(int src_id, int dst_id, double weight) {
+    public ProductRelation(int src_id, int dst_id, double weight) {
         this.src_product_id = src_id;
         this.dst_product_id = dst_id;
         this.weight = weight;

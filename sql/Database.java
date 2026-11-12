@@ -1,12 +1,16 @@
+package sql;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import util.Constants;
 
 //*/
 // Aristotle Daskaleas - 2026 : "User Recommendation Database With Bipartite Graphing"
@@ -28,6 +32,8 @@ import java.sql.ResultSet;
 //*/
 
 public final class Database {
+    final public static Path SCHEMA_LOC = Paths.get("").toAbsolutePath().resolve("sql").resolve("schema.sql");
+
     private Database(){} // make uninstantiable [only static methods are used]
 
     // Return a connection to the sql database found at 'DATABASE_PATH'
@@ -48,16 +54,13 @@ public final class Database {
     public static void initialize() throws SQLException, IOException {
        String schema;
 
-        try (InputStream input = Database.class.getResourceAsStream("schema.sql")) {
-            if (input == null) {
-                throw new IOException("Could not find schema.sql.");
-            }
-            schema = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        try {
+            schema = Files.readString(SCHEMA_LOC);
+        } catch (IOException e) {
+            throw new IOException("Schema could not be retrieved.");
         }
 
-        try (Connection connection = connect();
-             Statement statement = connection.createStatement()) 
-        {
+        try (Connection connection = connect(); Statement statement = connection.createStatement()) {
             for (String sql : schema.split(";")) { // execute all statements needed to initialize database
                 if (!sql.isBlank()) {
                     statement.execute(sql);

@@ -4,8 +4,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.sql.SQLException;
 import java.util.Arrays;
+import util.*;
+import datastructures.*;
 
 //*/
 // "User Recommendation Database With Bipartite Graphing"
@@ -36,6 +37,12 @@ public class Main {
 //#region SETUP
         // Print the beginning information
         Utilities.printStartInit(Constants.AUTHORS, Constants.PROG_NAME, Constants.YEAR);
+
+        // Initialize database (if needed)
+        // will return false if neither database.db nor schema.sql exist OR it cannot initialize the database
+        if (!Utilities.initializeDatabase()) {
+            return; // cannot run program without a database
+        }
 
         // Create variables to store information during runtime
         ArrayList<User> users = new ArrayList<User>();
@@ -656,12 +663,11 @@ public class Main {
                         product = Utilities.getUserInput("Enter a product name to add: ", input);
                         if (product == null) break;
 
-                        try {
-                            if (Database.doesProductExist(product)) {
-                                System.out.println("Error: Product already exists!\n");
-                                break;
-                            }
-                        } catch (SQLException e) {}
+                        if (Utilities.doesProductExist(product)) {
+                            System.out.println("Error: Product already exists!\n");
+                            break;
+                        }
+                        
 
                         String manufacturer = null;
                         boolean cancel = false;
