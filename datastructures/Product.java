@@ -30,17 +30,20 @@ public class Product implements Cloneable {
 
         // capitalize category
         if (category != null && category.length() > 0) { // non-null AND has at least one character
-            String[] cat_token = category.split(" ");
-            if (cat_token.length == 1) {
+            String[] cat_token = category.split(" "); // split category into tokens by word (space-delimited)
+
+            if (cat_token.length == 1) { // one word in category (e.g., 'Peripherals')
                 String begin_char = String.valueOf(category.toUpperCase().charAt(0));
                 if (category.length() == 1) { this.category = begin_char; }
                 else {
+                    // Add capitalized first character to rest of lowercased word
                     this.category = begin_char + category.toLowerCase().substring(1);
                 }
-            } else {
-                String build_string = "";
+            } else { // multiple words in category (e.g., 'Office Supplies')
+                String build_string = ""; // this will store the category to add
                 final int total_additions = cat_token.length;
-                int tracker = 0;
+                int tracker = 0; // to be compared with total_additions to ensure a trailing space is not added
+
                 for (String s : cat_token) {
                     ++tracker;
 
@@ -50,12 +53,14 @@ public class Product implements Cloneable {
                     } else {
                         build_string += begin_char + s.toLowerCase().substring(1);
                     }
+                    
+                    // only add space if there is another addition after the current one
                     if (tracker < total_additions) { build_string += " "; }
                 }
 
                 this.category = build_string;
             }
-        } else { this.category = category; }
+        } else { this.category = null; }
     }
 
     // accessors
