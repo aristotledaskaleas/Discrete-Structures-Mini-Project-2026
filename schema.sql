@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS products (
     product_id INTEGER PRIMARY KEY,
-    product_name TEXT NOT NULL,
+    product_name TEXT NOT NULL UNIQUE,
     manufacturer TEXT,
     category TEXT
 );
