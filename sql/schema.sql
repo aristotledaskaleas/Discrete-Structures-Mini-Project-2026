@@ -45,9 +45,3 @@ CREATE TABLE IF NOT EXISTS product_relationships (
 
     CHECK (src_product_id <> dst_product_id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_user_products_product
-    ON user_products(product_id);
-
-CREATE INDEX IF NOT EXISTS idx_relationships_target
-    ON product_relationships(dst_product_id);
