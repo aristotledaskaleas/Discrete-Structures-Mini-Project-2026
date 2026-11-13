@@ -92,7 +92,11 @@ public class User {
    }
 
    public boolean isUsingProduct(Product p) {
-      return this.used_products.stream().anyMatch(pr -> pr.name().equalsIgnoreCase(p.name()));
+      return this.used_products.stream().anyMatch(pr -> pr.product_id()==p.product_id());
+   }
+
+   public boolean isRecommendedProduct(Product p) {
+      return this.recommended_products.stream().anyMatch(pr -> pr.product_id()==p.product_id());
    }
 
    @Override 
