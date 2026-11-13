@@ -25,7 +25,7 @@ import datastructures.*;
 //  - Implement a simple algorithm for recommending products to users 
 //  - Seed the database with real world data
 //  - Implement a graphing method (graphical?)
-//  * Implement a menu allowing for the querying and manipulation of the database 
+//  + Implement a menu allowing for the querying and manipulation of the database 
 //  + Partition code in a manageable, understandable manner
 //  + Implement database querying and manipulation methods
 //  + Complete Utility methods that will be used later
