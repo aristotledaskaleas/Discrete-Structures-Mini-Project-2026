@@ -131,8 +131,8 @@ public class Utilities {
     public static void populateProductRelationList(ArrayList<ProductRelation> p_relations) {
         int other = 0;
         try {
-            for (int i = Constants.START_PROD_ID; i < Database.getLastProdID(); i++) {
-                for (int j = Constants.START_PROD_ID; j < Database.getLastProdID(); j++) {
+            for (int i = Constants.START_PROD_ID; i <= Database.getLastProdID(); i++) {
+                for (int j = Constants.START_PROD_ID; j <= Database.getLastProdID(); j++) {
                     final double weight = Database.getRelationWeight(i, j);
                     if (weight < 0.0) continue;
                     p_relations.add(new ProductRelation(i, j, weight));
