@@ -2,6 +2,7 @@ import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.Arrays;
@@ -71,12 +72,8 @@ public class Main {
             // Open a scanner for user input
             Scanner input = new Scanner(System.in);
 
-            // When true, next loop will break to exit the program
+            // When true, next loop will break to exit the program (i.e., 'q' is selected)
             boolean SIGQUIT = false;
-
-            String username = null, product = null;
-            boolean confirm = false, quit = false;
-            int user_id = -1, product_id = -1;
 
             while (true) {
                 if (SIGQUIT) break;
@@ -85,7 +82,7 @@ public class Main {
                 switch (choice) {
                     // Execute choice based on user input
                     case 'A': { // Register new user
-                        username = Utilities.getUserInput("Enter a username to add: ", input);
+                        String username = Utilities.getUserInput("Enter a username to add: ", input);
 
                         if (username == null) break;
 
@@ -99,7 +96,7 @@ public class Main {
                         break;
                     }
                     case 'B': { // Remove a user
-                        username = Utilities.getUserInput("Enter a username to remove: ", input);
+                        String username = Utilities.getUserInput("Enter a username to remove: ", input);
                         
                         if (username == null) break;
 
@@ -114,11 +111,9 @@ public class Main {
                         break;
                     }
                     case 'C': { // View all users [w/ opt. to search single name/id]
-                        username = null;
-                        user_id = -1;
-                        confirm = false;
-                        quit = false;
-                        boolean view_all = false;
+                        String username = null;
+                        int user_id = -1;
+                        boolean confirm = false, quit = false, view_all = false;
                         
                         while (!confirm) {
                             System.out.print("View [a]ll, or view by [u]ser or user_[i]d [q:cancel]? ");
@@ -128,10 +123,24 @@ public class Main {
                                     confirm = true;
                                     view_all = true;
                                 } else if (ch == 'u') { // by username
-                                    username = Utilities.getUserInput("Enter a username: ", input);
-                                    if (username == null) {
-                                        quit = true;
-                                    } confirm = true;
+                                    while (true) {
+                                        username = Utilities.getUserInput("Enter a username: ", input);
+                                        if (username == null) {
+                                            quit = true; break;
+                                        }
+
+                                        // set user_id from username
+                                        user_id = Utilities.getUserID(username);
+                                        if (user_id < 0) {
+                                            System.out.println("User does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
                                 } else if (ch == 'i') { // by user_id
                                     while (true) {
                                         try {
@@ -174,21 +183,14 @@ public class Main {
                                 System.out.println(u);
                             }
                         } else {
-                            if (user_id != -1) { // search by user-id
+                            if (user_id != -1) {
                                 for (User u : users) {
                                     if (u.getUserID() == user_id) {
                                         ++entries;
                                         System.out.println(u);
                                     }
                                 }
-                            } else if (username != null) { // search by username
-                                for (User u : users) {
-                                    if (u.getName().toLowerCase().equals(username.toLowerCase())) {
-                                        ++entries;
-                                        System.out.println(u);
-                                    }
-                                }
-                            } else {
+                            } else { // an error prevented user_id from being set
                                 System.out.println("Query error.");
                             }
                         }
@@ -197,49 +199,95 @@ public class Main {
                         break;
                     }
                     case 'D': { // Register user-product relationship
-                        confirm = false;
-                        boolean isSearchName = true;
+                        String username = null, product = null;
+                        int user_id = -1, product_id = -1;
+                        boolean confirm = false, quit = false;
+
                         while (!confirm) {
                             System.out.print("Add by [n]ames or [i]ds [q:cancel]? ");
                             try {
                                 char ch = input.nextLine().trim().toLowerCase().charAt(0);
                                 if (ch == 'n') { // by name
-                                    username = Utilities.getUserInput("Enter a username: ", input);
-                                    product = Utilities.getUserInput("Enter a product name: ", input);
-                                    if (username == null || product == null) {
-                                        quit = true;
-                                    } confirm = true;
+                                    while (true) {
+                                        username = Utilities.getUserInput("Enter a username: ", input);
+                                        if (username == null) {
+                                            quit = true; break;
+                                        }
+
+                                        user_id = Utilities.getUserID(username);
+                                        if (user_id < 0) {
+                                            System.out.println("User does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        product = Utilities.getUserInput("Enter a product name: ", input);
+                                        if (product == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id = Utilities.getProductID(product);
+                                        if (product_id < 0) {
+                                            System.out.println("Product does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
 
                                 } else if (ch == 'i') { // by id
-                                    isSearchName = false;
                                     while (true) {
-                                        try {
+                                        while (true) {
                                             String tmp1 = Utilities.getUserInput("Enter a user ID: ", input);
                                             if (tmp1 == null) {
                                                 quit = true; confirm = true; break;
                                             }
 
-                                            user_id = Integer.parseInt(tmp1.trim());
+                                            try {
+                                                user_id = Integer.parseInt(tmp1.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("User ID MUST be an integer!");
+                                                continue;
+                                            }
+                                            
                                             if (!Utilities.validateUserID(user_id)) {
                                                 continue;
                                             }
 
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        while (true) {
                                             String tmp2 = Utilities.getUserInput("Enter a product ID: ", input);
                                             if (tmp2 == null) {
                                                 quit = true; confirm = true; break;
                                             }
 
-                                            product_id = Integer.parseInt(tmp2.trim());
+                                            try {
+                                                product_id = Integer.parseInt(tmp2.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
+                                            
                                             if (!Utilities.validateProductID(product_id)) {
                                                 continue;
                                             }
 
-                                            confirm = true;
                                             break;
-                                        } catch (NumberFormatException e) {
-                                            System.out.println("IDs MUST be an integers!");
-                                            continue;
                                         }
+                                        if (quit) break;
+
+                                        confirm = true;
+                                        break;
                                     }
                                 } else if (ch == 'q') { // cancel
                                     System.out.println("Canceled.\n");
@@ -251,22 +299,7 @@ public class Main {
                                 System.out.println("trigger re-prompt.");
                             }
                         }
-
                         if (quit) break;
-
-                        if (isSearchName) {
-                            user_id = Utilities.getUserID(username);
-                            if (user_id < 0) {
-                                System.out.println("Bad username.");
-                                break;
-                            }
-
-                            product_id = Utilities.getProductID(product);
-                            if (product_id < 0) {
-                                System.out.println("Bad product name.");
-                                break;
-                            }
-                        }
 
                         if (!Utilities.addUserProductRelation(user_id, product_id)) {
                             System.out.println("Failed to register user-product relationship.");
@@ -293,49 +326,96 @@ public class Main {
                         break;
                     }
                     case 'E': { // Remove user-product r'shp
-                        confirm = false;
-                        boolean isSearchName = true;
+                        String username = null, product = null;
+                        int user_id = -1, product_id = -1;
+                        boolean confirm = false, quit = false;
+                        
+
                         while (!confirm) {
                             System.out.print("Remove by [n]ames or [i]ds [q:cancel]? ");
                             try {
                                 char ch = input.nextLine().trim().toLowerCase().charAt(0);
                                 if (ch == 'n') { // by name
-                                    username = Utilities.getUserInput("Enter a username: ", input);
-                                    product = Utilities.getUserInput("Enter a product name: ", input);
-                                    if (username == null || product == null) {
-                                        quit = true;
-                                    } confirm = true;
+                                    while (true) {
+                                        username = Utilities.getUserInput("Enter a username: ", input);
+                                        if (username == null) {
+                                            quit = true; break;
+                                        }
+
+                                        user_id = Utilities.getUserID(username);
+                                        if (user_id < 0) {
+                                            System.out.println("User does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        product = Utilities.getUserInput("Enter a product name: ", input);
+                                        if (product == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id = Utilities.getProductID(product);
+                                        if (product_id < 0) {
+                                            System.out.println("Product does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+                                    
+                                    confirm = true;
 
                                 } else if (ch == 'i') { // by id
-                                    isSearchName = false;
                                     while (true) {
-                                        try {
-                                            String tmp1 = Utilities.getUserInput("Enter a user ID: ", input);
-                                            if (tmp1 == null) {
+                                        while (true) {
+                                            String tmp_one = Utilities.getUserInput("Enter a user ID: ", input);
+                                            if (tmp_one == null) {
                                                 quit = true; confirm = true; break;
                                             }
 
-                                            user_id = Integer.parseInt(tmp1.trim());
+                                            try {
+                                                user_id = Integer.parseInt(tmp_one.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("User ID MUST be an integer!");
+                                                continue;
+                                            }
+
                                             if (!Utilities.validateUserID(user_id)) {
                                                 continue;
                                             }
 
-                                            String tmp2 = Utilities.getUserInput("Enter a product ID: ", input);
-                                            if (tmp2 == null) {
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        while (true) {
+                                            String tmp_two = Utilities.getUserInput("Enter a product ID: ", input);
+                                            if (tmp_two == null) {
                                                 quit = true; confirm = true; break;
                                             }
+                                            
+                                            try {
+                                                product_id = Integer.parseInt(tmp_two.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
 
-                                            product_id = Integer.parseInt(tmp2.trim());
                                             if (!Utilities.validateProductID(product_id)) {
                                                 continue;
                                             }
 
-                                            confirm = true;
                                             break;
-                                        } catch (NumberFormatException e) {
-                                            System.out.println("IDs MUST be an integers!");
-                                            continue;
                                         }
+                                        if (quit) break;
+
+                                        confirm = true;
+                                        break;
                                     }
                                 } else if (ch == 'q') { // cancel
                                     System.out.println("Canceled.\n");
@@ -347,22 +427,7 @@ public class Main {
                                 System.out.println("trigger re-prompt.");
                             }
                         }
-
                         if (quit) break;
-
-                        if (isSearchName) {
-                            user_id = Utilities.getUserID(username);
-                            if (user_id < 0) {
-                                System.out.println("Bad username.");
-                                break;
-                            }
-
-                            product_id = Utilities.getProductID(product);
-                            if (product_id < 0) {
-                                System.out.println("Bad product name.");
-                                break;
-                            }
-                        }
 
                         if (!Utilities.removeUserProductRelation(user_id, product_id)) {
                             System.out.println("Failed to remove user-product relationship.");
@@ -383,15 +448,10 @@ public class Main {
                         break;
                     }
                     case 'F': { // View user-product r'shps [w/ opt. to search single name/product/id]
-                        username = null;
-                        product = null;
-                        user_id = -1;
-                        product_id = -1;
-                        confirm = false;
-                        quit = false;
-                        boolean view_all = false;
-                        boolean isSearchModeUser = true;
-                        boolean isSearchModeID = false;
+                        String username = null, product = null;
+                        int user_id = -1, product_id = -1;
+                        boolean confirm = false, quit = false, view_all = false, 
+                          isSearchModeUser = true; // true-search by user, false-search by product
                         
                         while (!confirm) {
                             System.out.print("View [a]ll, or search by [u]ser or [p]roduct [q:cancel]? ");
@@ -417,6 +477,7 @@ public class Main {
                         }
                         if (quit) break;
 
+                        boolean isSearchModeID = false;
                         confirm = false;
                         while (!view_all && !confirm) {
                             System.out.print("View by [i]d or [n]ame [q:cancel]? ");
@@ -505,18 +566,17 @@ public class Main {
                         if (quit) break;
 
                         int entries = 0;
-
-                        if (view_all) { // view all user information
+                        if (view_all) { // view all user-product relations
                             boolean cancel = false;
-                            boolean isUserSearch = false;
-                            while (true) {
+
+                            while (true) { // ask to view in terms of products or users
                                 String selection = Utilities.getUserInput("View by [p]roducts or [u]sers: ", input);
                                 if (selection == null) {
                                     cancel = true; break;
                                 }
                                 switch (selection.trim().toLowerCase()) {
-                                    case "p" -> {}
-                                    case "u" -> { isUserSearch = true; }
+                                    case "p" -> { isSearchModeUser = false; }
+                                    case "u" -> { isSearchModeUser = true; }
                                     case "q" -> { cancel = true; }
                                     default -> {
                                         System.out.println("Bad selection [MUST be in 'PUQ'].\n");
@@ -530,7 +590,7 @@ public class Main {
 
                             System.out.println("\nUser-Product Relationships:");
 
-                            if (isUserSearch) {
+                            if (isSearchModeUser) {
                                 for (User u : users) {
                                     ++entries;
                                     String csv_used_products = String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()));
@@ -580,7 +640,7 @@ public class Main {
                                     );
                                 }
                             }
-                        } else {
+                        } else { // not view-all
                             System.out.println("\nUser-Product Relationships:");
 
                             if (isSearchModeUser) { // search by user
@@ -660,7 +720,8 @@ public class Main {
                         break;
                     }
                     case 'G': { // Register product
-                        product = Utilities.getUserInput("Enter a product name to add: ", input);
+                        String product = Utilities.getUserInput("Enter a product name to add: ", input);
+
                         if (product == null) break;
 
                         if (Utilities.doesProductExist(product)) {
@@ -695,11 +756,11 @@ public class Main {
 
                         String category = null;
                         cancel = false;
-                        int invalid_counter = 3;
+                        int invalid_counter = 3; // keep at 3 to ensure categories are printed the first time
 
                         // while category is invalid, keep prompting user
                         do {
-                            if (invalid_counter >= 3) { // hint valid categories
+                            if (invalid_counter >= 3) { // hint valid categories every 3 invalid entries (or first time)
                                 System.out.println(
                                     "Available Categories:\n" +
                                     String.join("\n", Constants.CATEGORIES)
@@ -739,7 +800,7 @@ public class Main {
                         break;
                     }
                     case 'H': { // Remove product
-                        product = Utilities.getUserInput("Enter a product name to remove: ", input);
+                        String product = Utilities.getUserInput("Enter a product name to remove: ", input);
                         
                         if (product == null) break;
 
@@ -760,11 +821,9 @@ public class Main {
                         break;
                     }
                     case 'I': { // View products [ w/ opt. to search single product/id]
-                        product = null;
-                        product_id = -1;
-                        confirm = false;
-                        quit = false;
-                        boolean view_all = false;
+                        String product = null;
+                        int product_id = -1;
+                        boolean confirm = false, quit = false, view_all = false;
                         
                         while (!confirm) {
                             System.out.print("View [a]ll, or view by [p]roduct_name or product_[i]d [q:cancel]? ");
@@ -774,10 +833,23 @@ public class Main {
                                     confirm = true;
                                     view_all = true;
                                 } else if (ch == 'p') { // by product name
-                                    product = Utilities.getUserInput("Enter a product name: ", input);
-                                    if (product == null) {
-                                        quit = true;
-                                    } confirm = true;
+                                    while (true) {
+                                        product = Utilities.getUserInput("Enter a product name: ", input);
+                                        if (product == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id = Utilities.getProductID(product);
+                                        if (product_id < 0) {
+                                            System.out.println("Product does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
                                 } else if (ch == 'i') { // by user_id
                                     while (true) {
                                         try {
@@ -843,12 +915,493 @@ public class Main {
                         break;
                     }
                     case 'J': { // Register product-product relationship
+                        String product_one = null, product_two = null;
+                        int product_id_one = -1, product_id_two = -1;
+                        double weight = -1.0;
+                        boolean confirm = false, quit = false;
+
+                        while (!confirm) {
+                            System.out.print("Add by [n]ames or [i]ds [q:cancel]? ");
+                            try {
+                                char ch = input.nextLine().trim().toLowerCase().charAt(0);
+                                if (ch == 'n') { // by name
+                                    while (true) {
+                                        product_one = Utilities.getUserInput("Enter a product name (1/2): ", input);
+                                        if (product_one == null) {
+                                            quit = true; break;
+                                        }
+                                        // get product 
+                                        product_id_one = Utilities.getProductID(product_one);
+                                        if (product_id_one < 0) {
+                                            System.out.println("Product does not exist (1/2).");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        product_two = Utilities.getUserInput("Enter a product name (2/2): ", input);
+                                        if (product_two == null) {
+                                            quit = true; break;
+                                        }
+                                        product_id_two = Utilities.getProductID(product_two);
+                                        if (product_id_two < 0) {
+                                            System.out.println("Product does not exist (2/2).");
+                                            continue;
+                                        } else if (product_id_two == product_id_one) {
+                                            System.out.println("Product two may not match product one.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
+
+                                } else if (ch == 'i') { // by id
+                                    while (true) {
+                                        while (true) {
+                                            String tmp_one = Utilities.getUserInput("Enter a product ID (1/2): ", input);
+                                            if (tmp_one == null) { // user cancelled
+                                                quit = true; confirm = true; break;
+                                            }
+
+                                            try {
+                                                product_id_one = Integer.parseInt(tmp_one.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
+
+                                            if (!Utilities.validateProductID(product_id_one)) { // invalid
+                                                continue;
+                                            }
+
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        while (true) {
+                                            String tmp_two = Utilities.getUserInput("Enter a product ID (2/2): ", input);
+                                            if (tmp_two == null) {
+                                                quit = true; confirm = true; break;
+                                            }
+
+                                            try {
+                                                product_id_two = Integer.parseInt(tmp_two.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
+
+                                            if (!Utilities.validateProductID(product_id_two)) {
+                                                continue;
+                                            }
+
+                                            if (product_id_two == product_id_one) {
+                                                System.out.println("Product two may not match product one.");
+                                                continue;
+                                            }
+
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        confirm = true;
+                                        break;
+                                    }
+                                } else if (ch == 'q') { // cancel
+                                    System.out.println("Canceled.\n");
+                                    quit = true; confirm = true;
+                                } else { // neither n, i, nor q
+                                    System.out.println("trigger re-prompt.");
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                System.out.println("trigger re-prompt.");
+                            }
+                        }
+                        if (quit) break;
+
+                        // there is at least one matching relation which already exists
+                        final int src_id = product_id_one, dst_id = product_id_two;
+                        if (productRelations.stream().filter(pr -> pr.src_id()==src_id && pr.dst_id()==dst_id).collect(Collectors.toList()).size() > 0) {
+                            System.out.printf("Could not add product relation '%d:%d' because it is already recorded in the database.\n", src_id, dst_id);
+                            break;
+                        }
+
+                        // Get weight from user
+                        while (true) {
+                            try {
+                                String tmp = Utilities.getUserInput("Enter product relational weight (0.0, 1.0]: ", input);
+                                if (tmp == null) {
+                                    quit = true; break;
+                                }
+
+                                weight = Double.parseDouble(tmp);
+                                if (weight < 0.0) {
+                                    System.out.println("Weight MUSTN'T be negative!");
+                                    continue;
+                                } else if (weight > 1.0 || Double.isNaN(weight)) { // greater than 1 or approaching infinity
+                                    System.out.println("Weight MUSTN'T exceed 1.0!");
+                                    continue;
+                                } else if (Math.abs(weight) < 1e-10) { // weight is just about zero
+                                    System.out.println("Weight MUSTN'T be zero (that implies the products are NOT related)!");
+                                    continue;
+                                } else {
+                                    break;
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("Weight MUST be a double (float)!");
+                                continue;
+                            }
+                        }
+                        if (quit) break;
+
+                        if (!Utilities.addProductRelation(product_id_one, product_id_two, weight)) {
+                            System.out.println("Failed to register product-product relationship.");
+                            break;
+                        }
+
+                        // update product relations
+                        productRelations.clear();
+                        Utilities.populateProductRelationList(productRelations);
                         break;
                     }
                     case 'K': { // Remove product-product r'shp
+                        String product_one = null, product_two = null;
+                        int product_id_one = -1, product_id_two = -1;
+                        boolean confirm = false, quit = false;
+                        
+                        while (!confirm) {
+                            System.out.print("Remove by [n]ames or [i]ds [q:cancel]? ");
+                            try {
+                                char ch = input.nextLine().trim().toLowerCase().charAt(0);
+                                if (ch == 'n') { // by name
+                                    while (true) {
+                                        product_one = Utilities.getUserInput("Enter a product name (1/2): ", input);
+                                        if (product_one == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id_one = Utilities.getProductID(product_one);
+                                        if (product_id_one < 0) {
+                                            System.out.println("Product does not exist (1/2).");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        product_two = Utilities.getUserInput("Enter a product name (2/2): ", input);
+                                        if (product_two == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id_two = Utilities.getProductID(product_two);
+                                        if (product_id_two < 0) {
+                                            System.out.println("Product does not exist (2/2).");
+                                            continue;
+                                        }
+
+                                        if (product_id_two == product_id_one) {
+                                            System.out.println("Product two may not match product one.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+                                    
+                                    confirm = true;
+
+                                } else if (ch == 'i') { // by id
+                                    while (true) {
+                                        while (true) {
+                                            String tmp_one = Utilities.getUserInput("Enter a product ID (1/2): ", input);
+                                            if (tmp_one == null) {
+                                                quit = true; confirm = true; break;
+                                            }
+
+                                            try {
+                                                product_id_one = Integer.parseInt(tmp_one.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
+
+                                            if (!Utilities.validateProductID(product_id_one)) {
+                                                continue;
+                                            }
+
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        while (true) {
+                                            String tmp_two = Utilities.getUserInput("Enter a product ID (2/2): ", input);
+                                            if (tmp_two == null) {
+                                                quit = true; confirm = true; break;
+                                            }
+
+                                            try {
+                                                product_id_two = Integer.parseInt(tmp_two.trim());
+                                            } catch (NumberFormatException e) {
+                                                System.out.println("Product ID MUST be an integer!");
+                                                continue;
+                                            }
+
+                                            if (!Utilities.validateProductID(product_id_two)) {
+                                                continue;
+                                            }
+
+                                            if (product_id_two == product_id_one) {
+                                                System.out.println("Product two may not match product one.");
+                                                continue;
+                                            }
+
+                                            break;
+                                        }
+                                        if (quit) break;
+
+                                        confirm = true;
+                                        break;
+                                    }
+                                } else if (ch == 'q') { // cancel
+                                    System.out.println("Canceled.\n");
+                                    quit = true; confirm = true;
+                                } else { // neither n, i, nor q
+                                    System.out.println("trigger re-prompt.");
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                System.out.println("trigger re-prompt.");
+                            }
+                        }
+                        if (quit) break;
+
+                        // there are no matching records
+                        final int src_id = product_id_one, dst_id = product_id_two;
+                        if (productRelations.stream().filter(pr -> pr.src_id()==src_id && pr.dst_id()==dst_id).collect(Collectors.toList()).size() == 0) {
+                            System.out.printf("Could not remove product relation '%d:%d' because it is not recorded in the database.\n", src_id, dst_id);
+                            break;
+                        }
+
+                        if (!Utilities.removeProductRelation(product_id_one, product_id_two)) {
+                            System.out.println("Failed to remove product-product relationship.");
+                            break;
+                        }
+
+                        // repopulate productRelations
+                        productRelations.clear();
+                        Utilities.populateProductRelationList(productRelations);
+
                         break;
                     }
                     case 'L': { // View prod-prod r'shps [w/ opt. to search single product/id]
+                        String product_one = null, product_two = null;
+                        int product_id_one = -1, product_id_two = -1;
+                        boolean confirm = false, quit = false, view_all = false;
+                        
+                        while (!confirm) {
+                            System.out.print("View [a]ll, or view by [p]roduct_names or product_[i]ds [q:cancel]? ");
+                            try {
+                                char ch = input.nextLine().trim().toLowerCase().charAt(0);
+                                if (ch == 'a') { // view all
+                                    confirm = true;
+                                    view_all = true;
+                                } else if (ch == 'p') { // by product names
+                                    while (true) {
+                                        product_one = Utilities.getUserInput("Enter a product name (1/2): ", input);
+
+                                        if (product_one == null) {
+                                            quit = true; break;
+                                        }
+
+                                        product_id_one = Utilities.getProductID(product_one);
+                                        if (product_id_one < 0) {
+                                            System.out.println("Product does not exist.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        product_two = Utilities.getUserInput("Enter a product name (2/2) [x:stop at one product]: ", input);
+
+                                        if (product_two == null) {
+                                            quit = true; break;
+                                        }
+
+                                        if (product_two.length() > 0 && product_two.toLowerCase().charAt(0) == 'x') {
+                                            product_id_two = -1; break;
+                                        }
+
+                                        product_id_two = Utilities.getProductID(product_two);
+                                        if (product_id_two < 0) {
+                                            System.out.println("Product does not exist.");
+                                            continue;
+                                        }
+
+                                        if (product_id_two == product_id_one) {
+                                            System.out.println("Product two may not match product one.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
+                                } else if (ch == 'i') { // by product ids
+                                    while (true) {
+                                        String tmp_one = Utilities.getUserInput("Enter a product ID (1/2): ", input);
+                                        if (tmp_one == null) {
+                                            quit = true; confirm = true; break;
+                                        }
+
+                                        try {
+                                            product_id_one = Integer.parseInt(tmp_one.trim());
+                                        } catch (NumberFormatException e) {
+                                            System.out.println("Product ID MUST be an integer!");
+                                            continue;
+                                        }
+
+                                        if (!Utilities.validateProductID(product_id_one)) {
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    while (true) {
+                                        String tmp_two = Utilities.getUserInput("Enter a product ID (2/2) [x:stop at one product]: ", input);
+                                        if (tmp_two == null) {
+                                            quit = true; confirm = true; break;
+                                        }
+
+                                        if (tmp_two.length() > 0 && tmp_two.toLowerCase().charAt(0) == 'x') {
+                                            product_id_two = -1; break;
+                                        }
+
+                                        try {
+                                            product_id_two = Integer.parseInt(tmp_two.trim());
+                                        } catch (NumberFormatException e) {
+                                            System.out.println("Product ID MUST be an integer!");
+                                            continue;
+                                        }
+
+                                        if (!Utilities.validateProductID(product_id_two)) {
+                                            continue;
+                                        }
+
+                                        if (product_id_two == product_id_one) {
+                                            System.out.println("Product two may not match product one.");
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                                    if (quit) break;
+
+                                    confirm = true;
+                                } else if (ch == 'q') { // cancel
+                                    System.out.println("Canceled.\n");
+                                    quit = true; confirm = true;
+                                } else { // neither a, p, i, nor q
+                                    System.out.println("trigger re-prompt.");
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                System.out.println("trigger re-prompt.");
+                            }
+                        }
+
+                        if (quit) break;
+
+                        System.out.println("\nProduct-Product Relationships:");
+                        int entries = 0;
+
+                        if (view_all) { // view all product relationships
+                            for (ProductRelation pr : productRelations) {
+                                ++entries;
+                                System.out.println(String.format(
+                                    """
+                                    {
+                                      src_product_id: %d,
+                                      src_product_name: %s,
+                                      dst_product_id: %d,
+                                      dst_product_name: %s,
+                                      weight: %.2f
+                                    }""",
+                                    pr.src_id(),
+                                    Utilities.getProduct(pr.src_id()),
+                                    pr.dst_id(),
+                                    Utilities.getProduct(pr.dst_id()),
+                                    pr.weight()
+                                ));
+                            }
+                        } else {
+                            final int prod_id_src = product_id_one, prod_id_dst = product_id_two;
+                            if (product_id_one != -1 && product_id_two != -1) { // search for specific relations
+                                List<ProductRelation> matching = productRelations.stream().filter(pr -> pr.src_id()==prod_id_src && pr.dst_id()==prod_id_dst).collect(Collectors.toList());
+                                if (matching.isEmpty()) {
+                                    System.out.println("No results were returned for your query.");
+                                }
+                                
+                                for (ProductRelation pr : matching) {
+                                    ++entries;
+                                    System.out.println(String.format(
+                                        """
+                                        {
+                                          src_product_id: %d,
+                                          src_product_name: %s,
+                                          dst_product_id: %d,
+                                          dst_product_name: %s,
+                                          weight: %.2f
+                                        }""",
+                                        pr.src_id(),
+                                        Utilities.getProduct(pr.src_id()),
+                                        pr.dst_id(),
+                                        Utilities.getProduct(pr.dst_id()),
+                                        pr.weight()
+                                    ));
+                                }
+                            } else if (product_id_two == -1) { // search for all relations related to first product
+                                List<ProductRelation> matching = productRelations.stream().filter(pr -> pr.src_id() == prod_id_src).collect(Collectors.toList());
+                                if (matching.isEmpty()) {
+                                    System.out.println("No results were returned for your query.");
+                                }
+
+                                for (ProductRelation pr : matching) {
+                                    ++entries;
+                                    System.out.println(String.format(
+                                        """
+                                        {
+                                          src_product_id: %d,
+                                          src_product_name: %s,
+                                          dst_product_id: %d,
+                                          dst_product_name: %s,
+                                          weight: %.2f
+                                        }""",
+                                        pr.src_id(),
+                                        Utilities.getProduct(pr.src_id()),
+                                        pr.dst_id(),
+                                        Utilities.getProduct(pr.dst_id()),
+                                        pr.weight()
+                                    ));
+                                }
+                            } else {
+                                System.out.println("Query error.");
+                            }
+                        }
+                        System.out.println("END [" + entries + " entries]\n");
+
                         break;
                     }
                     case 'M': { // Generate graph
@@ -863,7 +1416,7 @@ public class Main {
                         break;
                     }
                     default: { // an internal error
-                        System.out.println("Bad character: " + input + "\n");
+                        System.out.println("Bad character: " + choice + "\n");
                         System.out.println("Quitting...\n");
                         SIGQUIT = true;
                         break;
