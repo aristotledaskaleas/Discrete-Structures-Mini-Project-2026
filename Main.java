@@ -593,6 +593,11 @@ public class Main {
                             if (isSearchModeUser) {
                                 for (User u : users) {
                                     ++entries;
+                                    String csv_recommended_products = String.join(", ", u.getRecommendedProducts().stream().map(Product::name).collect(Collectors.toList()));
+                                    if (csv_recommended_products == null || csv_recommended_products.length() == 0) {
+                                        csv_recommended_products = "NONE";
+                                    }
+
                                     String csv_used_products = String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()));
                                     if (csv_used_products == null || csv_used_products.length() == 0) {
                                         csv_used_products = "NONE";
@@ -606,21 +611,34 @@ public class Main {
                                             {
                                               %s
                                             }
+                                            recommended_products:
+                                            {
+                                              %s
+                                            }
                                         }
                                         """, 
                                         u.getName(),
                                         u.getUserID(),
-                                        csv_used_products
+                                        csv_used_products,
+                                        csv_recommended_products
                                     );
                                 }
                             } else { // product search
                                 for (Product p : products) {
                                     ++entries;
 
+                                    // get all usernames who are recommended the product
+                                    String csv_user_recommendations = String.join(", ", users.stream().filter(u -> u.isRecommendedProduct(p)).map(User::getName).collect(Collectors.toList()));
+
                                     // get all usernames of people using the product (comma-separated)
                                     String csv_user_relations = String.join(", ", users.stream().filter(u -> u.isUsingProduct(p)).map(User::getName).collect(Collectors.toList()));
+
                                     if (csv_user_relations == null || csv_user_relations.length() == 0) {
                                         csv_user_relations = "NONE";
+                                    }
+
+                                    if (csv_user_recommendations == null || csv_user_recommendations.length() == 0) {
+                                        csv_user_recommendations = "NONE";
                                     }
 
                                     System.out.printf(
@@ -632,11 +650,16 @@ public class Main {
                                             {
                                               %s
                                             }
+                                            recommended_to:
+                                            {
+                                              %s
+                                            }
                                         }
                                         """, 
                                         p.name(),
                                         p.product_id(),
-                                        csv_user_relations
+                                        csv_user_relations,
+                                        csv_user_recommendations
                                     );
                                 }
                             }
@@ -648,8 +671,14 @@ public class Main {
                                     if (u.getUserID() == user_id) {
                                         ++entries;
                                         String csv_used_products = String.join(", ", u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()));
+                                        String csv_recommended_products = String.join(", ", u.getRecommendedProducts().stream().map(Product::name).collect(Collectors.toList()));
+
                                         if (csv_used_products == null || csv_used_products.length() == 0) {
                                             csv_used_products = "NONE";
+                                        }
+
+                                        if (csv_recommended_products == null || csv_recommended_products.length() == 0) {
+                                            csv_recommended_products = "NONE";
                                         }
 
                                         System.out.printf(
@@ -661,11 +690,16 @@ public class Main {
                                                 {
                                                   %s
                                                 }
+                                                recommended_products:
+                                                {
+                                                  %s
+                                                }
                                             }
                                             """, 
                                             u.getName(),
                                             u.getUserID(),
-                                            csv_used_products
+                                            csv_used_products,
+                                            csv_recommended_products
                                         );
                                     }
                                 }
@@ -677,22 +711,37 @@ public class Main {
                                     }
                                 }
                                 
-                                ArrayList<User> matching = new ArrayList<>();
+                                ArrayList<User> uses_product = new ArrayList<>();
+                                ArrayList<User> recommended_to = new ArrayList<>();
                                 for (User u : users) {
+                                    boolean add = true;
+
                                     if (u.isUsingProduct(target)) {
+                                        add = false;
                                         ++entries;
-                                        matching.add(u);
+                                        uses_product.add(u);
+                                    }
+
+                                    if (u.isRecommendedProduct(target)) {
+                                        if (add) ++entries;
+                                        recommended_to.add(u);
                                     }
                                 }
 
-                                if (matching.size() == 0) {
+                                if (uses_product.size() == 0 && recommended_to.size() == 0) {
                                     System.out.println("No results were found.");
                                     break;
                                 }
 
-                                String csv_related_users = String.join(", ", matching.stream().map(User::getName).collect(Collectors.toList()));
+                                String csv_related_users = String.join(", ", uses_product.stream().map(User::getName).collect(Collectors.toList()));
+                                String csv_recommended_users = String.join(", ", recommended_to.stream().map(User::getName).collect(Collectors.toList()));
+
                                 if (csv_related_users == null || csv_related_users.length() == 0) {
                                     csv_related_users = "NONE";
+                                }
+
+                                if (csv_recommended_users == null || csv_recommended_users.length() == 0) {
+                                    csv_recommended_users = "NONE";
                                 }
 
                                 System.out.printf(
@@ -704,11 +753,16 @@ public class Main {
                                         {
                                           %s
                                         }
+                                        recommended_to:
+                                        {
+                                          %s
+                                        }
                                     }
                                     """, 
                                     target.name(),
                                     target.product_id(),
-                                    csv_related_users
+                                    csv_related_users,
+                                    csv_recommended_users
                                 );
 
                             } else {
