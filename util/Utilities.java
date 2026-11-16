@@ -6,11 +6,14 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 import java.nio.file.Files;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 import sql.Database;
 import datastructures.*;
 
@@ -160,18 +163,128 @@ public class Utilities {
         System.out.println("Populated " + other + " user-product relationships into program.");
     }
 
-    // TODO: implement method (recommendation system)
     // PRE: take array lists of users and product_relations
     // POST: populates recommended product lists in each User instance comparing used products to unused products
     // and adding similar products based on weights and categories
-    public static void populateUserProductRecommendations(ArrayList<User> users, ArrayList<ProductRelation> relations) {
-        for (User u : users) {
-            if (u.getUsedProducts().isEmpty()) {
-                // add Constants.MAX_RECOMMENDATIONS most popular recommendations for those with no data
-            } else {
-                // get Constants.MAX_RECOMMENDATIONS most similar recommendations based on used products
+    public static void populateUserProductRecommendations(ArrayList<User> users, ArrayList<ProductRelation> relations, ArrayList<Product> products) {
+        // hint all invalid entries in POPULAR_PRODUCTS list to output
+        for (String prod : Constants.MOST_POPULAR_PRODUCTS_2026) {
+            if (!Utilities.doesProductExist(prod)) {
+                System.out.println("[WARNING] Product in recommendation list: '" + prod + "' does not exist!");
             }
         }
+        
+        int total_recommendations_made = 0;
+        for (User u : users) {
+            u.clearRecommendedProducts(); // in case there are any residual entries for the user before adding fresh ones
+
+            int curr_products_added = 0;
+            if (u.getUsedProducts().isEmpty()) {
+                // add Constants.MAX_RECOMMENDATIONS most popular recommendations for those with no data
+                if (Constants.MOST_POPULAR_PRODUCTS_2026.length < Constants.MAX_RECOMMENDATIONS) {
+                    for (String prod : Constants.MOST_POPULAR_PRODUCTS_2026) {
+                        if (curr_products_added >= Constants.MAX_RECOMMENDATIONS) {
+                            break;
+                        }
+
+                        if (!Utilities.doesProductExist(prod)) {
+                            continue;
+                        }
+
+                        final List<Product> target_a = products.stream().filter(p->p.name().equalsIgnoreCase(prod)).collect(Collectors.toList());
+                        final Product target = (target_a.isEmpty()) ? null : target_a.get(0);
+                        if (target == null) continue;
+
+                        u.addRecommendedProduct(target);
+                        ++curr_products_added;
+                    }
+
+                } else { // length of recommendation lists exceeds maximum allowed recommendations
+                    // ordered by most popular at index 0
+                    int track_idx = 0;
+                    while (
+                        (curr_products_added < Constants.MAX_RECOMMENDATIONS) &&
+                        (track_idx < Constants.MOST_POPULAR_PRODUCTS_2026.length)
+                    ) {
+                        final String curr_prod = Constants.MOST_POPULAR_PRODUCTS_2026[track_idx];
+                        if (!Utilities.doesProductExist(curr_prod)) {
+                            ++track_idx;
+                            continue;
+                        }
+
+                        final List<Product> target_list = products.stream().filter(p->p.name().equalsIgnoreCase(curr_prod)).collect(Collectors.toList());
+                        final Product target = (target_list.isEmpty()) ? null : target_list.get(0);
+
+                        if (target == null) {
+                            ++track_idx; continue;
+                        }
+
+                        u.addRecommendedProduct(target);
+                        ++curr_products_added;
+                        ++track_idx;
+                    }
+
+                }
+
+            } else { // at least one registered related product
+                // get Constants.MAX_RECOMMENDATIONS most similar recommendations based on used products
+                ArrayList<Product> related_products = new ArrayList<>();
+                ArrayList<ProductRelation> relation_lst = new ArrayList<>();
+
+                for (Product prod : u.getUsedProducts()) {
+                    final int prod_id = prod.product_id();
+
+                    for (ProductRelation pr : relations) {
+                        if (pr.src_id() == prod_id) {
+                            relation_lst.add(pr);
+                        }
+                    }
+                }
+                
+                // order all product relations from first element being strongest recommendation to last being weakest
+                relation_lst.sort(Comparator.comparingDouble(ProductRelation::weight).reversed());
+                for (ProductRelation pr : relation_lst) {
+                    for (Product p : products) {
+                        // dst_id is related product to src_id --- product should not already be used
+                        if (pr.dst_id() == p.product_id() && !u.isUsingProduct(p)) {
+                            related_products.add(p);
+                            break;
+                        }
+                    }
+                }
+
+                // add additional recommendations if data from related products was insufficient (less than Constants.MAX_RECOMMENDATIONS made)
+                if (related_products.size() < Constants.MAX_RECOMMENDATIONS) {
+                    int track_idx = 0;
+                    final int recommendations_to_make = Constants.MAX_RECOMMENDATIONS - related_products.size();
+                    while (
+                        (track_idx < recommendations_to_make) &&
+                        (track_idx < Constants.MOST_POPULAR_PRODUCTS_2026.length)
+                    ) {
+                        final String prod = Constants.MOST_POPULAR_PRODUCTS_2026[track_idx];
+                        final List<Product> prod_list = products.stream().filter(p->p.name().equalsIgnoreCase(prod)).collect(Collectors.toList());
+                        final Product target = (prod_list.isEmpty()) ? null : prod_list.get(0);
+                        if (target == null) { ++track_idx; continue; }
+
+                        related_products.add(target);
+                        ++track_idx;
+                    }
+                }
+
+                // remove duplicate elements
+                List<Product> unique_products = related_products.stream().distinct().collect(Collectors.toList());
+
+                for (Product p : unique_products) {
+                    if (curr_products_added >= Constants.MAX_RECOMMENDATIONS) break;
+
+                    u.addRecommendedProduct(p);
+                    ++curr_products_added;
+                }
+            }
+
+            total_recommendations_made += curr_products_added;
+        }
+        System.out.println("Populated " + total_recommendations_made + " product recommendations into program.");
     }
 
     // TODO: implement method (graph)
