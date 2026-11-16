@@ -24,12 +24,28 @@ public final class Constants {
     final public static Path DATABASE_PATH = Paths.get("").toAbsolutePath().resolve("sql").resolve("database.db"); // hardcoded 'database.db'
     final public static String DATABASE_LOC = "jdbc:sqlite:" + DATABASE_PATH.toAbsolutePath(); // specify JBDC driver
 
-    final public static String[] CATEGORIES = { // Only allow these categories to be searched for
+    // Only allow these categories to be searched for / appended to database
+    final public static String[] CATEGORIES = {
+        "Apparel",
         "Food",
+        "Tableware",
+        "Personal Care",
+        "Cleaning",
+        "Appliances",
         "Video",
         "Audio",
+        "Computers",
         "Peripherals",
+        "Pet",
         "Office Supplies"
+    };
+
+    // Define the most popular products (2026) in descending order for recommending to users with
+    //   no used product data on record. Products listed MUST be in the database.
+    final public static String[] MOST_POPULAR_PRODUCTS_2026 = {
+        "Acne Patches",
+        "Insulated Tumbler",
+        "Cat Litter"
     };
 
     // Database user/product starting ID constants
@@ -37,7 +53,7 @@ public final class Constants {
     final static int START_PROD_ID = 101; // and products at 101
 
     // Specify how many recommendations should be issued to each user
-    final static int MAX_RECOMMENDATIONS = 3;
+    final public static int MAX_RECOMMENDATIONS = 3;
 
     // Specify arbitrary username length restrictions
     final static int MIN_USERNAME_LENGTH = 3; // is 3 -> 20 good? I hope so! :3
