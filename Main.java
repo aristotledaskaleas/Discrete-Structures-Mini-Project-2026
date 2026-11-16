@@ -22,9 +22,9 @@ import datastructures.*;
 
 //*
 // GOALS: [KEY:{-:planned,+:completed,*:in_progress}]
-//  - Implement a simple algorithm for recommending products to users 
-//  - Seed the database with real world data
 //  - Implement a graphing method (graphical?)
+//  * Seed the database with real world data
+//  + Implement a simple algorithm for recommending products to users 
 //  + Implement a menu allowing for the querying and manipulation of the database 
 //  + Partition code in a manageable, understandable manner
 //  + Implement database querying and manipulation methods
@@ -45,6 +45,8 @@ public class Main {
             return; // cannot run program without a database
         }
 
+        System.out.println("[NOTE] Recommendations Per User set at " + Constants.MAX_RECOMMENDATIONS + ".");
+
         // Create variables to store information during runtime
         ArrayList<User> users = new ArrayList<User>();
         ArrayList<Product> products = new ArrayList<Product>();
@@ -62,6 +64,9 @@ public class Main {
 
         // Load all user-product relationships
         Utilities.populateUserProductRelations(users, products);
+
+        // Populate user recommendations
+        Utilities.populateUserProductRecommendations(users, productRelations, products);
 
         // Print end of initialization hint
         Utilities.printEndInit();
@@ -323,6 +328,9 @@ public class Main {
                                 break;
                             }
                         }
+
+                        // recommend new products to user
+                        Utilities.populateUserProductRecommendations(users, productRelations, products);
                         break;
                     }
                     case 'E': { // Remove user-product r'shp
@@ -445,6 +453,9 @@ public class Main {
                                 break;
                             }
                         }
+
+                        // recommendations may be affected by deleting relationships
+                        Utilities.populateUserProductRecommendations(users, productRelations, products);
                         break;
                     }
                     case 'F': { // View user-product r'shps [w/ opt. to search single name/product/id]
@@ -1122,6 +1133,9 @@ public class Main {
                         // update product relations
                         productRelations.clear();
                         Utilities.populateProductRelationList(productRelations);
+
+                        // update user product recommendations
+                        Utilities.populateUserProductRecommendations(users, productRelations, products);
                         break;
                     }
                     case 'K': { // Remove product-product r'shp
@@ -1253,6 +1267,8 @@ public class Main {
                         productRelations.clear();
                         Utilities.populateProductRelationList(productRelations);
 
+                        // some recommended products may no longer be related
+                        Utilities.populateUserProductRecommendations(users, productRelations, products);
                         break;
                     }
                     case 'L': { // View prod-prod r'shps [w/ opt. to search single product/id]
