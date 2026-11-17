@@ -250,26 +250,39 @@ public class Utilities {
                     }
                 }
 
-                // add additional recommendations if data from related products was insufficient (less than Constants.MAX_RECOMMENDATIONS made)
-                if (related_products.size() < Constants.MAX_RECOMMENDATIONS) {
-                    int track_idx = 0;
-                    final int recommendations_to_make = Constants.MAX_RECOMMENDATIONS - related_products.size();
-                    while (
-                        (track_idx < recommendations_to_make) &&
-                        (track_idx < Constants.MOST_POPULAR_PRODUCTS_2026.length)
-                    ) {
-                        final String prod = Constants.MOST_POPULAR_PRODUCTS_2026[track_idx];
-                        final List<Product> prod_list = products.stream().filter(p->p.name().equalsIgnoreCase(prod)).collect(Collectors.toList());
-                        final Product target = (prod_list.isEmpty()) ? null : prod_list.get(0);
-                        if (target == null) { ++track_idx; continue; }
+                // remove duplicate elements
+                List<Product> unique_products = related_products.stream().distinct().collect(Collectors.toList());
 
-                        related_products.add(target);
+                // add additional recommendations if data from related products was insufficient (less than Constants.MAX_RECOMMENDATIONS made)
+                if (unique_products.size() < Constants.MAX_RECOMMENDATIONS) {
+                    int track_idx = 0;
+                    while ((track_idx < Constants.MOST_POPULAR_PRODUCTS_2026.length)) {
+                        final String curr_prod = Constants.MOST_POPULAR_PRODUCTS_2026[track_idx];
+                        if (!Utilities.doesProductExist(curr_prod)) {
+                            ++track_idx;
+                            continue;
+                        }
+
+                        final List<Product> target_list = products.stream().filter(p->p.name().equalsIgnoreCase(curr_prod)).collect(Collectors.toList());
+                        final Product target = (target_list.isEmpty()) ? null : target_list.get(0);
+
+                        if (target == null) {
+                            ++track_idx; continue;
+                        }
+
+                        unique_products.add(target);
                         ++track_idx;
                     }
                 }
 
-                // remove duplicate elements
-                List<Product> unique_products = related_products.stream().distinct().collect(Collectors.toList());
+
+                // remove duplicate elements [again in case one of the recommended ones were already used]
+                unique_products.removeIf(p->u.getUsedProducts().stream().map(Product::name).collect(Collectors.toList()).contains(p.name()));
+
+                // remove any elements left over that exceeds the maximum
+                while (unique_products.size() > Constants.MAX_RECOMMENDATIONS) {
+                    unique_products.removeLast();
+                }
 
                 for (Product p : unique_products) {
                     if (curr_products_added >= Constants.MAX_RECOMMENDATIONS) break;
@@ -284,7 +297,6 @@ public class Utilities {
         System.out.println("Populated " + total_recommendations_made + " product recommendations into program.");
     }
 
-    // TODO: implement method (graph)
     // PRE: take list of users
     // POST: make user->recommendation and user->product maps and use
     // information to generate a visual graph
