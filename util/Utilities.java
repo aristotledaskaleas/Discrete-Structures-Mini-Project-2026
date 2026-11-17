@@ -8,9 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
 import java.util.Comparator;
@@ -291,43 +288,12 @@ public class Utilities {
     // PRE: take list of users
     // POST: make user->recommendation and user->product maps and use
     // information to generate a visual graph
-    public static void generateGraph(ArrayList<User> users) {
-        Map<String, ArrayList<String>> user_recommendations = new HashMap<>();
-        Map<String, ArrayList<String>> user_products = new HashMap<>();
-
-        // iterate through all users and their recommendations
-        for (User u : users) {
-            ArrayList<String> prod_names = new ArrayList<String>();
-            for (Product p : u.getRecommendedProducts()) { // add names of products to list
-                prod_names.add(p.name());
-            }
-
-            // add entry in total recommendations
-            user_recommendations.put(u.getName(), new ArrayList<String>(prod_names));
-
-            ArrayList<String> used_names = new ArrayList<String>();
-            if (u.getUsedProducts().size() <= Constants.MAX_RECOMMENDATIONS) { // less than (or equal to) 3 used products
-                for (Product p : u.getUsedProducts()) {
-                    used_names.add(p.name());
-                }
-            } else { // only add 3 random products
-                ArrayList<Product> tmp = u.getUsedProducts();
-                Random rand = new Random();
-
-                for (int i = 0; i < Constants.MAX_RECOMMENDATIONS; ++i) {
-                    used_names.add((tmp.get(rand.nextInt(tmp.size()))).name());
-                }
-            }
-
-            user_products.put(u.getName(), new ArrayList<String>(used_names));
-        }
-
-        //
-        // CODE TO GENERATE GRAPH, RESPECT SIZE OF USERS AND PRODUCTS
-        // PERHAPS USE DATA GENERATED WITH RECOMMENDED AND USED PRODUCTS
-        //
+    public static void generateGraph(ArrayList<User> users, ArrayList<Product> products) {
+        final List<User> finalUsers = List.copyOf(users);
+        final List<Product> finalProducts = List.copyOf(products);
         
-
+        // pass users and products to graph class      
+        Graph.showGraph(finalUsers, finalProducts);
     }
 
     // PRE: take a prompt and input
