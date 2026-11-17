@@ -22,8 +22,8 @@ import datastructures.*;
 
 //*
 // GOALS: [KEY:{-:planned,+:completed,*:in_progress}]
-//  - Implement a graphing method (graphical?)
-//  * Seed the database with real world data
+//  + Implement a graphing method (graphical? √)
+//  + Seed the database with real world data
 //  + Implement a simple algorithm for recommending products to users 
 //  + Implement a menu allowing for the querying and manipulation of the database 
 //  + Partition code in a manageable, understandable manner
@@ -1476,7 +1476,7 @@ public class Main {
                     }
                     case 'M': { // Generate graph
                         System.out.println("Generating graph...");
-                        Utilities.generateGraph(users);
+                        Utilities.generateGraph(users, products);
                         System.out.println("Done!\n");
                         break;
                     }
